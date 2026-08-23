@@ -1,0 +1,208 @@
+/* =================== TABLET =================== */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 240px;
+  }
+
+  .main-content {
+    padding: 24px;
+  }
+
+  .dev-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =================== PROJECT DETAILS GRID =================== */
+@media (max-width: 900px) {
+  .details-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .team-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =================== MOBILE SIDEBAR =================== */
+@media (max-width: 768px) {
+  .topbar {
+    display: flex;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar-overlay {
+    cursor: pointer;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 20px 16px;
+  }
+
+  .auth-layout {
+    flex-direction: column;
+    direction: ltr;
+  }
+
+  .auth-left {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 240px;
+    padding: 30px 20px;
+  }
+
+  .auth-right {
+    margin-left: 0;
+    min-height: 0;
+  }
+
+  .auth-illustration-wrap {
+    margin-top: 16px;
+  }
+
+  .auth-illustration-wrap img {
+    width: 140px;
+  }
+
+  .auth-left-footer {
+    display: none;
+  }
+
+  .auth-logo h1 {
+    font-size: 22px;
+  }
+
+  .auth-right {
+    padding: 30px 20px;
+  }
+
+  .role-option {
+    font-size: 12px;
+  }
+
+  .members-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dev-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modal {
+    padding: 24px 20px;
+  }
+
+  .steps-indicator {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .step-tab {
+    min-width: 100px;
+    font-size: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .page-breadcrumb {
+    font-size: 13px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .project-summary-card {
+    border-radius: var(--radius);
+  }
+
+  .data-table {
+    min-width: 700px;
+  }
+}
+
+/* =================== SMALL MOBILE =================== */
+@media (max-width: 480px) {
+  .auth-left {
+    min-height: 160px;
+  }
+
+  .auth-illustration-wrap {
+    display: none;
+  }
+
+  .dev-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .main-content {
+    padding: 16px 12px;
+  }
+
+  .btn {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+
+  .auth-form-title {
+    font-size: 22px;
+  }
+
+  .success-title {
+    font-size: 26px;
+  }
+
+  .success-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .role-selector-inline {
+    flex-wrap: wrap;
+  }
+
+  .details-columns {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =================== GLOBAL OVERFLOW PROTECTION =================== */
+.dev-name,
+.project-info-value,
+.detail-value,
+.auth-form-title,
+.card-title,
+.member-card-info h4,
+.member-card-info p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* =================== PRINT =================== */
+@media print {
+  .sidebar,
+  .topbar,
+  .btn {
+    display: none !important;
+  }
+
+  .main-content {
+    margin: 0;
+    padding: 0;
+  }
+}

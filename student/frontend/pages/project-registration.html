@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Project - Graduation Project Registration System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/pages/project-registration.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <!-- Shared App Shell: Sidebar + Topbar (see js/components/layout.js) -->
+  <div id="app-shell" data-topbar-title="Register New Project"></div>
+  <script src="../js/components/layout.js?v=3"></script>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 id="page-title">Graduation Project Registration</h1>
+      <p id="page-subtitle">Please fill in all required information accurately</p>
+    </div>
+
+    <!-- Steps Indicator -->
+    <div class="steps-indicator" id="steps-indicator">
+      <div class="step-tab active" data-step="1" id="step-tab-1">
+        Project Information
+      </div>
+      <div class="step-tab" data-step="2" id="step-tab-2">
+        Team Information
+      </div>
+      <div class="step-tab" data-step="3" id="step-tab-3">
+        Team Leader
+      </div>
+      <div class="step-tab" data-step="4" id="step-tab-4">
+        Team Members
+      </div>
+    </div>
+
+    <!-- Step 1: Project Info -->
+    <div class="card" id="step-1">
+      <div class="card-header">
+        <span class="card-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563EB" stroke-width="2" class="card-title-icon">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Project Information
+        </span>
+      </div>
+      <div class="card-body">
+        <form id="project-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="proj-title-ar">Scientific Project Title (Arabic) <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="proj-title-ar" placeholder="Enter the scientific project title" dir="rtl">
+            <div class="form-error" id="proj-title-ar-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="proj-title-en">Scientific Project Title (English) <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="proj-title-en" placeholder="Enter the scientific project title">
+            <div class="form-error" id="proj-title-en-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="proj-idea">Project Idea <span class="required-mark">*</span></label>
+            <textarea class="form-control" id="proj-idea" placeholder="Enter the project idea" rows="3"></textarea>
+            <div class="form-error" id="proj-idea-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="proj-problem">Problem Definition <span class="required-mark">*</span></label>
+            <textarea class="form-control" id="proj-problem" placeholder="Describe the problem definition" rows="3"></textarea>
+            <div class="form-error" id="proj-problem-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="proj-objectives">Project Objectives <span class="required-mark">*</span></label>
+            <textarea class="form-control" id="proj-objectives" placeholder="Enter the objectives" rows="3"></textarea>
+            <div class="form-error" id="proj-objectives-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="proj-contribution">Expected Contribution <span class="required-mark">*</span></label>
+            <textarea class="form-control" id="proj-contribution" placeholder="Enter the expected contribution" rows="2"></textarea>
+            <div class="form-error" id="proj-contribution-error">This field is required</div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" id="next-step-1">
+              Next
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Step 2: Team Info -->
+    <div class="card hidden" id="step-2">
+      <div class="card-header">
+        <span class="card-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563EB" stroke-width="2" class="card-title-icon">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Team Information
+        </span>
+      </div>
+      <div class="card-body">
+        <form id="team-info-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="team-academic-year">Academic Year <span class="required-mark">*</span></label>
+            <select class="form-control" id="team-academic-year" disabled>
+              <option value="" selected>Loading...</option>
+            </select>
+            <div class="form-error" id="team-academic-year-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="team-department">Department <span class="required-mark">*</span></label>
+            <select class="form-control" id="team-department">
+              <option value="">Select department</option>
+              <option value="Computer Science">Computer Science (CS)</option>
+              <option value="Information Systems">Information Systems (IS)</option>
+            </select>
+            <div class="form-error" id="team-department-error">This field is required</div>
+            <div class="form-error" id="team-registration-closed-error">Project registration is closed for this department.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="team-program">Program <span class="required-mark">*</span></label>
+            <select class="form-control" id="team-program" disabled>
+              <option value="">Select program</option>
+            </select>
+            <div class="form-error" id="team-program-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="team-regulation">Regulation <span class="required-mark">*</span></label>
+            <select class="form-control" id="team-regulation">
+              <option value="">Select regulation</option>
+              <option value="Old Regulation">Old Regulation</option>
+              <option value="Credit Hours">Credit Hours</option>
+            </select>
+            <div class="form-error" id="team-regulation-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="team-supervisor">Supervisor Name <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="team-supervisor" placeholder="Enter the supervisor's name in English">
+            <div class="form-error" id="team-supervisor-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="team-assistant-supervisor">Assistant Supervisor Name <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="team-assistant-supervisor" placeholder="Enter the assistant supervisor's name in English">
+            <div class="form-error" id="team-assistant-supervisor-error">This field is required</div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="prev-step-2">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              Previous
+            </button>
+            <button type="button" class="btn btn-primary" id="next-step-2">
+              Next
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Step 3: Team Leader -->
+    <div class="card hidden" id="step-3">
+      <div class="card-header">
+        <span class="card-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563EB" stroke-width="2" class="card-title-icon">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          Team Leader
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="info-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+          </svg>
+          <span>The team leader will automatically be added as a team member as well</span>
+        </div>
+
+        <form id="leader-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="leader-name">Team Leader Name <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="leader-name" placeholder="Enter the team leader's name in Arabic">
+            <div class="form-error" id="leader-name-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="leader-phone">Phone <span class="required-mark">*</span></label>
+            <input type="tel" class="form-control tel-input" id="leader-phone" placeholder="01xxxxxxxxx" dir="ltr" maxlength="11">
+            <div class="form-error" id="leader-phone-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="leader-role">Role / Specialization <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="leader-role" placeholder="Frontend developer">
+            <div class="form-error" id="leader-role-error">This field is required</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="leader-code">Student ID <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="leader-code" placeholder="Enter student ID" maxlength="20" dir="ltr">
+            <div class="form-error" id="leader-code-error">This field is required</div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="prev-step-3">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              Previous
+            </button>
+            <button type="button" class="btn btn-primary" id="next-step-3">
+              Next
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Step 4: Team Members -->
+    <div class="card hidden" id="step-4">
+      <div class="card-header">
+        <span class="card-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563EB" stroke-width="2" class="card-title-icon">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Team Members
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="info-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+          </svg>
+          <span>The team leader has been added automatically. You can add additional members (at least one additional member required)</span>
+        </div>
+
+        <!-- Add Member Form -->
+        <div class="add-member-box">
+          <h4 class="add-member-title">Add New Member</h4>
+          <div class="form-group">
+            <label class="form-label" for="member-name">Member Name <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="member-name" placeholder="Enter the member's name in Arabic">
+            <div class="form-error" id="member-name-error">This field is required</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="member-phone">Phone Number <span class="required-mark">*</span></label>
+            <input type="tel" class="form-control tel-input" id="member-phone" placeholder="01xxxxxxxxx" dir="ltr" maxlength="11">
+            <div class="form-error" id="member-phone-error">This field is required</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="member-role">Role / Specialization <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="member-role" placeholder="Frontend developer">
+            <div class="form-error" id="member-role-error">This field is required</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="member-code">Student ID <span class="required-mark">*</span></label>
+            <input type="text" class="form-control" id="member-code" placeholder="Enter student ID" maxlength="20" dir="ltr">
+            <div class="form-error" id="member-code-error">This field is required</div>
+          </div>
+          <div class="add-member-btn-row">
+            <button type="button" class="btn btn-primary" id="add-member-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Members List -->
+        <div id="members-container">
+          <h4 class="add-member-title">
+            Team Members
+            <span class="badge badge-primary members-count-badge" id="members-count">0</span>
+          </h4>
+          <div class="members-grid" id="members-grid"></div>
+          <div class="form-error form-error-spaced" id="members-error">You must add at least one member to the team besides the leader</div>
+        </div>
+
+        <div class="form-actions form-actions-lg">
+          <button type="button" class="btn btn-secondary" id="prev-step-4">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Previous
+          </button>
+          <button type="button" class="btn btn-primary" id="submit-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <span id="submit-btn-label">Register</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Logout Modal -->
+  <div class="modal-backdrop" id="logout-modal">
+    <div class="modal">
+      <div class="modal-icon modal-icon-danger">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#DC2626" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </div>
+      <h3 class="modal-title">Logout</h3>
+      <p class="modal-body">Are you sure?</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="confirm-logout">Logout</button>
+        <button class="btn btn-secondary" id="cancel-logout">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/api/runtime-config.js"></script>
+  <script src="../js/config.js?v=3"></script>
+  <script src="../js/storage.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/validation.js?v=3"></script>
+  <script src="../js/animations.js?v=3"></script>
+  <script src="../js/main.js?v=3"></script>
+  <script src="../js/pages/project-registration.js?v=3"></script>
+</body>
+</html>

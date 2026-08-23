@@ -1,0 +1,295 @@
+/* =================== SIDEBAR =================== */
+.sidebar {
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, #6D8B9C 0%, #7C9AAF 40%, #8EAFD9 78%, #B8D9FF 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 100;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 26px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.sidebar-header-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  color: #0A1424;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+  /* Dial the main sidebar logo down to ~50% visibility (bottom decorative
+     illustration is a separate element and is unaffected by this). */
+  opacity: 0.5;
+}
+
+.sidebar-header-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.sidebar-logo-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0A1424;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.sidebar-logo-text span {
+  font-size: 15px;
+  color: #0A1424;
+  font-weight: 800;
+  display: block;
+}
+
+.sidebar-divider {
+  width: calc(100% - 40px);
+  height: 1px;
+  margin: 6px auto 18px;
+  background: linear-gradient(to right, transparent, rgba(30,41,59,0.35) 15%, rgba(30,41,59,0.35) 85%, transparent);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sidebar-divider::before,
+.sidebar-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(30,41,59,0.45);
+  transform: translateY(-50%);
+}
+
+.sidebar-divider::before { left: -2px; }
+.sidebar-divider::after { right: -2px; }
+
+/* Nav */
+.sidebar-nav {
+  padding: 8px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  /* Cairo's static weight steps jump straight from 600 (Semibold) to 700
+     (Bold) with nothing in between, and 600 alone was reading as too thin
+     at this size. A hairline text-stroke nudges the perceived weight up
+     without moving to the heavier 700 cut. */
+  -webkit-text-stroke: 0.25px currentColor;
+  letter-spacing: 0.1px;
+  color: #0A1424;
+  cursor: pointer;
+  transition: var(--transition);
+  background: transparent;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+.nav-item svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.nav-item:hover {
+  background: #E7EAF0;
+  transform: translateY(-1px);
+  /* Keep the exact same text-shadow as the base state so hovering never
+     visibly shifts the text's weight/appearance. */
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+.nav-item.active,
+.nav-item:focus,
+.nav-item:focus-visible,
+.nav-item:active {
+  background: #E7EAF0;
+  color: #0A1424;
+  outline: none;
+}
+
+/* Decorative illustration pinned at the bottom of the sidebar */
+.sidebar-illustration {
+  margin-top: auto;
+  flex: none;
+  height: 170px;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+  pointer-events: none;
+}
+
+.sidebar-illustration img {
+  width: 210px;
+  height: auto;
+  opacity: 0.16;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  /* Very light blur to bring back a touch of the previous softness on this
+     bottom decorative illustration only — the top sidebar logo/icon is untouched. */
+  filter: drop-shadow(0 6px 12px rgba(30, 41, 59, 0.14)) blur(0.5px);
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, black 10%);
+  mask-image: linear-gradient(to top, transparent 0%, black 10%);
+}
+
+/* Small, barely-there decorative dot cluster confined to the area right
+   around the logo — not spread across the sidebar. */
+.sidebar-illustration::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  background-image: radial-gradient(rgba(30,41,59,0.09) 1px, transparent 1px);
+  background-size: 14px 14px;
+  -webkit-mask-image: radial-gradient(circle at center, black 0%, transparent 70%);
+  mask-image: radial-gradient(circle at center, black 0%, transparent 70%);
+}
+
+/* =================== MAIN CONTENT =================== */
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 32px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+}
+
+/* =================== TOP BAR (MOBILE) =================== */
+.topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.hamburger {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+}
+
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: var(--transition);
+}
+
+/* =================== PAGE HEADER / BREADCRUMB =================== */
+.page-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 32px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.page-breadcrumb svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--text);
+  flex-shrink: 0;
+}
+
+.page-breadcrumb .crumb-muted {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Legacy page header (still used on a couple of secondary pages) */
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.page-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* =================== OVERLAY (MOBILE DRAWER) =================== */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.sidebar-overlay.show {
+  display: block;
+  opacity: 1;
+}
+

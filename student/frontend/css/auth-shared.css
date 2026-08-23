@@ -1,0 +1,168 @@
+/* =================== AUTH LAYOUT =================== */
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  /* Illustration panel always renders on the left, matching the page's LTR direction. */
+  direction: ltr;
+}
+
+.auth-left {
+  /* Fixed to the viewport so its height (and therefore the vertical position of
+     the centered heading/logo) never depends on how tall the right-hand form is.
+     This is what previously caused the heading to jump between Login and Register. */
+  direction: ltr;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100vh;
+  background: linear-gradient(160deg, #7d9bad 0%, #98b7cf 35%, #aecbe6 65%, #c7e0fb 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  overflow: hidden;
+}
+
+.auth-left::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+
+.auth-left::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -60px;
+  width: 250px;
+  height: 250px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+
+.auth-left-dots {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.auth-left-dots.auth-left-dots-bottom {
+  top: auto;
+  bottom: 40px;
+  right: auto;
+  left: 40px;
+}
+
+.auth-left-dots span {
+  width: 6px;
+  height: 6px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 50%;
+  display: block;
+}
+
+.auth-logo {
+  text-align: center;
+  color: white;
+  z-index: 1;
+}
+
+.auth-logo h1 {
+  font-size: 32px;
+  font-weight: 800;
+  margin-top: 20px;
+  line-height: 1.4;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.auth-illustration-wrap {
+  margin-top: 32px;
+  z-index: 1;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 16px 24px rgba(20, 30, 45, 0.18));
+  opacity: 0.98;
+}
+
+.auth-illustration-wrap img {
+  width: 330px;
+  height: auto;
+  display: block;
+  image-rendering: auto;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.auth-right {
+  /* Offset by the fixed left panel's width so content flows correctly. */
+  direction: ltr;
+  margin-left: 42%;
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: var(--card);
+}
+
+.auth-form-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-form-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.auth-form-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+/* Tighter vertical rhythm on Login/Register: the shared .form-group
+   spacing (20px) reads as too loose once several fields stack up here. */
+.auth-form-container .form-group {
+  margin-bottom: 10px;
+}
+
+.auth-form-container .form-label {
+  margin-bottom: 3px;
+}
+
+/* =================== AUTH LINK =================== */
+.auth-link-text {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.auth-link-text a {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.auth-link-text a:hover {
+  text-decoration: underline;
+}
+

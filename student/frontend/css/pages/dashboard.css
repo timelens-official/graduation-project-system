@@ -1,0 +1,384 @@
+/* =========================================================
+   PROJECT SUMMARY CARD
+   ========================================================= */
+
+.project-summary-card {
+  background: var(--card);
+  border: none;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+
+  width: 100%;
+  max-width: 480px;
+
+  padding: 32px;
+
+  margin-bottom: 20px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PROJECT HEADER
+   ========================================================= */
+
+.project-summary-header {
+  background: none;
+
+  padding: 0 0 24px;
+
+  color: var(--text);
+}
+
+
+.project-summary-header h3 {
+  font-size: 19px;
+  font-weight: 800;
+
+  margin: 0 0 4px;
+
+  color: var(--text);
+
+  line-height: 1.4;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
+.project-summary-header p {
+  font-size: 13px;
+
+  opacity: 0.85;
+
+  margin: 0;
+}
+
+
+/* =========================================================
+   PROJECT BODY
+   ========================================================= */
+
+.project-summary-body {
+  padding: 0;
+  width: 100%;
+}
+
+
+/* =========================================================
+   PROJECT INFO ROW
+   ========================================================= */
+
+.project-info-row {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 5px;
+
+  width: 100%;
+
+  padding: 12px 0;
+
+  border-bottom: none;
+
+  font-size: 14px;
+
+  box-sizing: border-box;
+}
+
+
+.project-info-row:last-child {
+  border-bottom: none;
+}
+
+
+/* Label */
+
+.project-info-label {
+  color: var(--text-secondary);
+
+  font-weight: 600;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+
+/* Value */
+
+.project-info-value {
+  color: var(--text);
+
+  font-weight: 700;
+
+  font-size: 16px;
+
+  line-height: 1.6;
+
+  max-width: 100%;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+#project-status-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  width: fit-content;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   DOCTOR REVIEW
+   INSIDE SAME PROJECT CARD
+   ========================================================= */
+
+#doctor-review-section {
+  width: 100%;
+
+  margin: 4px 0 0;
+
+  padding: 0;
+
+  box-sizing: border-box;
+}
+
+
+/* Hidden */
+
+#doctor-review-section.hidden {
+  display: none;
+}
+
+
+/* Doctor comment */
+
+#doctor-comment {
+  display: block;
+
+  width: 100%;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
+
+  color: var(--text);
+
+  font-weight: 600;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
+}
+
+
+/* Doctor name */
+
+#doctor-reviewer {
+  display: block;
+
+  max-width: 100%;
+
+  color: var(--text);
+
+  font-weight: 700;
+
+  font-size: 15px;
+
+  line-height: 1.6;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
+}
+
+
+/* Review date */
+
+#doctor-review-date {
+  display: block;
+
+  max-width: 100%;
+
+  color: var(--text);
+
+  font-weight: 700;
+
+  font-size: 15px;
+
+  line-height: 1.6;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   PROJECT ACTIONS
+   ========================================================= */
+
+.project-summary-actions {
+  display: flex;
+
+  gap: 12px;
+
+  margin-top: 20px;
+
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+.project-summary-actions .btn {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   REGISTRATION CLOSED
+   ========================================================= */
+
+.reg-closed-note {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  color: var(--danger);
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  margin-top: 10px;
+}
+
+
+.reg-closed-note svg {
+  width: 13px;
+
+  height: 13px;
+
+  stroke: var(--danger);
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.empty-state {
+  max-width: 480px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .project-summary-card {
+    width: 100%;
+
+    max-width: 100%;
+
+    padding: 24px;
+
+    margin-bottom: 16px;
+  }
+
+
+  .project-summary-header {
+    padding-bottom: 20px;
+  }
+
+
+  .project-summary-header h3 {
+    font-size: 18px;
+  }
+
+
+  .project-info-row {
+    padding: 11px 0;
+  }
+
+
+  .project-info-value {
+    font-size: 15px;
+  }
+
+
+  .project-summary-actions {
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-top: 18px;
+  }
+
+
+  .project-summary-actions .btn {
+    width: 100%;
+
+    justify-content: center;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .project-summary-card {
+    padding: 20px;
+  }
+
+
+  .project-summary-header h3 {
+    font-size: 17px;
+  }
+
+
+  .project-info-label {
+    font-size: 12px;
+  }
+
+
+  .project-info-value {
+    font-size: 14px;
+  }
+
+}

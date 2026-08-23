@@ -1,0 +1,60 @@
+/* =================== PROJECT DETAILS LAYOUT!! =================== */
+.details-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 20px;
+}
+
+.details-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.details-col-fill {
+  height: 100%;
+}
+
+.team-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.pd-member-leader-tag {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pd-back-row {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.pd-back-row-center {
+  text-align: center;
+}
+
+.detail-item {
+  margin-bottom: 16px;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.detail-value {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  line-height: 1.7;
+}

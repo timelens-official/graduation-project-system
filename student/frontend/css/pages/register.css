@@ -1,0 +1,21 @@
+/* Register page uses shared auth layout, form and button styles.
+   No page-specific rules needed at this time. */
+
+/* Full Name field keeps dir="rtl" for correct typing direction, but
+   its placeholder text should be left-aligned to match the rest of
+   the form. Only the placeholder is affected. */
+#fullName::placeholder {
+  text-align: left;
+  direction: ltr;
+}
+
+/* Student ID is numeric-only and must behave exactly like National ID:
+   LTR direction, left alignment, digits entered from the left. */
+#facultyId {
+  direction: ltr !important;
+  text-align: left !important;
+}
+#facultyId::placeholder {
+  text-align: left;
+  direction: ltr;
+}

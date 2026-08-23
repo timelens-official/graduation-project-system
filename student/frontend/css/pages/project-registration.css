@@ -1,0 +1,153 @@
+/* =================== STEP INDICATOR =================== */
+.steps-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 32px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.step-tab {
+  flex: 1;
+  padding: 14px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 3px solid transparent;
+  position: relative;
+}
+
+.step-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.step-tab.completed {
+  color: var(--success);
+  border-bottom-color: var(--success);
+}
+
+/* =================== MEMBER CARD =================== */
+.member-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  transition: var(--transition);
+}
+
+.member-card:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.member-card-info h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.member-card-info p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* =================== PROJECT REGISTRATION FORM HELPERS =================== */
+.card-title-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.required-mark {
+  color: var(--danger);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.form-actions-lg {
+  margin-top: 24px;
+}
+
+.tel-input {
+  text-align: left;
+}
+
+.add-member-box {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.add-member-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #374151;
+}
+
+.add-member-btn-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.add-member-btn-row .btn {
+  min-width: 160px;
+  justify-content: center;
+}
+
+.members-count-badge {
+  margin-left: 8px;
+}
+
+.form-error-spaced {
+  margin-top: 10px;
+}
+
+.badge-tag-sm {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+.member-phone-text {
+  font-size: 12px;
+  direction: ltr;
+  text-align: left;
+}
+
+.btn-icon-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+  border: 1px solid #fca5a5;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
