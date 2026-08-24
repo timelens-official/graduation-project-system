@@ -2140,12 +2140,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 "function"
             ) {
                 throw new Error(
-                    "AdminApi.put is not available. The reassignment endpoint must support PUT /assignments/:projectId."
+                    "AdminApi.put is not available. The reassignment endpoint must support PUT /assignments/projects/:projectId."
                 );
             }
 
             await AdminApi.put(
-                `/assignments/${currentProject.id}`,
+                `/assignments/projects/${currentProject.id}`,
                 {
                     staffIds:
                         staffIds
