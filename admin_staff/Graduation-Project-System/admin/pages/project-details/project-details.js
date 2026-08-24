@@ -8,8 +8,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================================
 
     const statusModal = document.getElementById("statusModal");
-    const openModalBtn = document.getElementById("changeStatusBtn");
     const closeModalBtn = document.getElementById("closeModalBtn");
+
+    // Main Project Details actions
+    const addReviewerActionBtn =
+        document.getElementById("addReviewerActionBtn");
+
+    const finalDecisionActionBtn =
+        document.getElementById("finalDecisionActionBtn");
 
     const addReviewerBtn = document.getElementById("addReviewerBtn");
     const reviewersList = document.getElementById("reviewersList");
@@ -60,6 +66,12 @@ document.addEventListener("DOMContentLoaded", function () {
     let teamMembers = [];
 
     let pendingReviewerPicks = [];
+
+    // Current action opened from Project Details.
+    // "assignReviewer" = direct reviewer assignment.
+    // "finalDecision" = direct final-decision flow.
+    // "modal" = the old workflow modal action.
+    let actionMode = null;
 
 
     // =========================================================
@@ -183,6 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             renderProjectInfo();
 
+            renderActionButtons();
             renderModalState();
 
 
@@ -555,6 +568,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         return div.innerHTML;
+    }
+
+
+    // =========================================================
+    // PROJECT DETAILS ACTION BUTTONS
+    // =========================================================
+
+    function renderActionButtons() {
+
+        const status =
+            currentProject
+                ? currentProject.status
+                : "";
+
+        const phase =
+            getPhase(status);
+
+        /*
+         * The admin can start a new review cycle:
+         *
+         * 1. When the student first submits the project.
+         * 2. When the student submits a revision.
+         *
+         * While staff are already reviewing, the admin cannot
+         * assign another reviewer from this screen.
+         *
+         * Final Decision is available in both of those phases,
+         * so the admin can decide directly without assigning staff.
+         */
+        const canStartAdminAction =
+            phase === "pending" ||
+            phase === "revisionSubmitted" ||
+            phase === "underDecision";
+
+        if (addReviewerActionBtn) {
+            addReviewerActionBtn.style.display =
+                (
+                    phase === "pending" ||
+                    phase === "revisionSubmitted"
+                )
+                    ? ""
+                    : "none";
+        }
+
+        if (finalDecisionActionBtn) {
+            finalDecisionActionBtn.style.display =
+                canStartAdminAction
+                    ? ""
+                    : "none";
+        }
     }
 
 
@@ -1059,6 +1122,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         renderStatusBadge(status);
 
+        renderActionButtons();
+
         renderReviewersList();
 
         renderCommentsList();
@@ -1071,20 +1136,17 @@ document.addEventListener("DOMContentLoaded", function () {
         if (finalDecisionRow) {
 
             /*
-             * Final Decision is:
+             * Admin can make a final decision:
+             * - on the first student submission,
+             * - after a student revision,
+             * - or after staff have finished reviewing.
              *
-             * 1. Hidden on first Pending submission
-             * 2. Hidden while UnderReview
-             * 3. Visible on UnderDecision
-             * 4. Visible on RevisionSubmitted
-             *
-             * This is exactly the requested workflow.
+             * It stays hidden only while staff are actively reviewing.
              */
-
             finalDecisionRow.classList.toggle(
                 "hidden",
-                phase === "pending" ||
-                phase === "underReview"
+                phase === "underReview" ||
+                phase === "done"
             );
         }
 
@@ -1133,17 +1195,19 @@ document.addEventListener("DOMContentLoaded", function () {
             if (modalPhaseHint) {
 
                 modalPhaseHint.textContent =
-                    'Add reviewers below, then click "Send for Review" to send this project to staff.';
+                    actionMode === "finalDecision"
+                        ? "Select the final decision and send it directly to the student."
+                        : 'Add reviewers below, then click "Send for Review" to send this project to staff.';
             }
-
 
             if (confirmBtn) {
 
                 confirmBtn.textContent =
-                    "Send for Review";
+                    actionMode === "finalDecision"
+                        ? "Send Final Decision"
+                        : "Send for Review";
 
-                confirmBtn.style.display =
-                    "";
+                confirmBtn.style.display = "";
             }
         }
 
@@ -1159,150 +1223,206 @@ document.addEventListener("DOMContentLoaded", function () {
             if (modalPhaseHint) {
 
                 modalPhaseHint.textContent =
-                    "The student has submitted a revised project. You can either make a final decision directly or add a reviewer to review the new version.";
+                    actionMode === "finalDecision"
+                        ? "The student submitted a revision. Select the final decision and send it directly to the student."
+                        : "The student has submitted a revised project. You can assign a reviewer again or make the final decision directly.";
             }
-
-
-            if (confirmBtn) {
-
-                /*
-                 * UI LOGIC:
-                 *
-                 * No reviewer selected:
-                 *      Send Final Decision
-                 *
-                 * Reviewer selected:
-                 *      Send for Review
-                 */
-
-                confirmBtn.textContent =
-                    pendingReviewerPicks.length > 0
-                        ? "Send for Review"
-                        : "Send Final Decision";
-
-                confirmBtn.style.display =
-                    "";
-            }
-
-
-            /*
-             * Don't force a decision here.
-             * Admin can choose one from the dropdown.
-             */
-        }
-
-
-        // =====================================================
-        // UNDER REVIEW
-        // =====================================================
-
-        else if (
-            phase === "underReview"
-        ) {
-
-            if (modalPhaseHint) {
-
-                modalPhaseHint.textContent =
-                    "This project is currently under review by staff.";
-            }
-
-
-            if (confirmBtn) {
-
-                confirmBtn.style.display =
-                    "none";
-            }
-        }
-
-
-        // =====================================================
-        // UNDER DECISION
-        // =====================================================
-
-        else if (
-            phase === "underDecision"
-        ) {
-
-            if (modalPhaseHint) {
-
-                modalPhaseHint.textContent =
-                    'Staff have finished reviewing this project. Select a final decision below, then click "Send Final Decision".';
-            }
-
 
             if (confirmBtn) {
 
                 confirmBtn.textContent =
-                    "Send Final Decision";
+                    actionMode === "finalDecision"
+                        ? "Send Final Decision"
+                        : (
+                            pendingReviewerPicks.length > 0
+                                ? "Send for Review"
+                                : "Send Final Decision"
+                        );
 
-                confirmBtn.style.display =
-                    "";
-            }
-
-
-            if (finalDecisionSelect) {
-
-                finalDecisionSelect.value =
-                    "";
+                confirmBtn.style.display = "";
             }
         }
 
 
-        // =====================================================
-        // DONE
-        // =====================================================
+    // =========================================================
+    // UNDER REVIEW
+    // =========================================================
 
-        else {
+    else if (
+        phase === "underReview"
+    ) {
 
-            if (modalPhaseHint) {
+        if (modalPhaseHint) {
 
-                modalPhaseHint.textContent =
-                    `This project's final decision ("${formatStatusLabel(
-                        status
-                    )}") has already been sent to the student.`;
-            }
-
-
-            if (confirmBtn) {
-
-                confirmBtn.style.display =
-                    "none";
-            }
-
-
-            if (finalDecisionSelect) {
-
-                finalDecisionSelect.value =
-                    (
-                        currentProject.finalDecision &&
-                        currentProject.finalDecision.admin_decision
-                    ) ||
-                    status;
-            }
+            modalPhaseHint.textContent =
+                "This project is currently under review by staff.";
         }
+
+
+        if (confirmBtn) {
+
+            confirmBtn.style.display =
+                "none";
+        }
+    }
+
+
+    // =========================================================
+    // UNDER DECISION
+    // =========================================================
+
+    else if (
+        phase === "underDecision"
+    ) {
+
+        if (modalPhaseHint) {
+
+            modalPhaseHint.textContent =
+                'Staff have finished reviewing this project. Select a final decision below, then click "Send Final Decision".';
+        }
+
+
+        if (confirmBtn) {
+
+            confirmBtn.textContent =
+                "Send Final Decision";
+
+            confirmBtn.style.display =
+                "";
+        }
+
+
+        if (finalDecisionSelect && actionMode !== "finalDecision") {
+
+            finalDecisionSelect.value =
+                "";
+        }
+    }
+
+
+    // =========================================================
+    // DONE
+    // =========================================================
+
+    else {
+
+        if (modalPhaseHint) {
+
+            modalPhaseHint.textContent =
+                `This project's final decision ("${formatStatusLabel(
+                    status
+                )}") has already been sent to the student.`;
+        }
+
+
+        if (confirmBtn) {
+
+            confirmBtn.style.display =
+                "none";
+        }
+
+
+        if (finalDecisionSelect) {
+
+            finalDecisionSelect.value =
+                (
+                    currentProject.finalDecision &&
+                    currentProject.finalDecision.admin_decision
+                ) ||
+                status;
+        }
+    }
+    }
+
+
+    // =========================================================
+    // MAIN PROJECT DETAILS: ADD REVIEWER
+    // =========================================================
+
+    if (addReviewerActionBtn) {
+
+        addReviewerActionBtn.addEventListener(
+            "click",
+            function () {
+
+                const phase =
+                    currentProject
+                        ? getPhase(currentProject.status)
+                        : "";
+
+                if (
+                    phase !== "pending" &&
+                    phase !== "revisionSubmitted"
+                ) {
+                    alert(
+                        "A reviewer can only be assigned when the project is pending or has a new revision."
+                    );
+                    return;
+                }
+
+                actionMode = "assignReviewer";
+                pendingReviewerPicks = [];
+
+                renderDoctorsPicker();
+
+                if (reviewerPickerModal) {
+                    reviewerPickerModal.classList.add("active");
+                }
+            }
+        );
+    }
+
+
+    // =========================================================
+    // MAIN PROJECT DETAILS: FINAL DECISION
+    // =========================================================
+
+    if (finalDecisionActionBtn) {
+
+        finalDecisionActionBtn.addEventListener(
+            "click",
+            function () {
+
+                const phase =
+                    currentProject
+                        ? getPhase(currentProject.status)
+                        : "";
+
+                if (
+                    phase !== "pending" &&
+                    phase !== "revisionSubmitted" &&
+                    phase !== "underDecision"
+                ) {
+                    alert(
+                        "A final decision cannot be sent while staff are actively reviewing the project."
+                    );
+                    return;
+                }
+
+                actionMode = "finalDecision";
+                pendingReviewerPicks = [];
+
+                if (finalDecisionSelect) {
+                    finalDecisionSelect.value = "";
+                }
+
+                if (newCommentInput) {
+                    newCommentInput.value = "";
+                }
+
+                renderModalState();
+
+                if (statusModal) {
+                    statusModal.classList.add("active");
+                }
+            }
+        );
     }
 
 
     // =========================================================
     // OPEN STATUS MODAL
     // =========================================================
-
-    if (openModalBtn) {
-
-        openModalBtn.addEventListener(
-            "click",
-            () => {
-
-                if (statusModal) {
-
-                    statusModal.classList.add(
-                        "active"
-                    );
-                }
-            }
-        );
-    }
-
 
     // =========================================================
     // CLOSE STATUS MODAL
@@ -1320,6 +1440,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         "active"
                     );
                 }
+
+                actionMode = null;
+                pendingReviewerPicks = [];
             }
         );
     }
@@ -1386,6 +1509,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 statusModal.classList.remove(
                     "active"
                 );
+
+                actionMode = null;
+                pendingReviewerPicks = [];
             }
 
 
@@ -1553,14 +1679,56 @@ document.addEventListener("DOMContentLoaded", function () {
                             }
                         }
 
-
-                        if (
-                            reviewerPickerModal
-                        ) {
-
+                        if (reviewerPickerModal) {
                             reviewerPickerModal.classList.remove(
                                 "active"
                             );
+                        }
+
+                        /*
+                         * Main Project Details -> Add Reviewer:
+                         * selecting a staff member immediately assigns them.
+                         *
+                         * The old modal workflow keeps its original
+                         * behavior and waits for the confirm button.
+                         */
+                        if (actionMode === "assignReviewer") {
+
+                            const selectedCount =
+                                pendingReviewerPicks.length;
+
+                            addReviewerActionBtn.disabled = true;
+
+                            try {
+
+                                await sendProjectForReview();
+
+                                await loadProject();
+
+                                alert(
+                                    `Reviewer assigned successfully. ${selectedCount} reviewer(s) were assigned to this project.`
+                                );
+
+                            } catch (err) {
+
+                                console.error(
+                                    "DIRECT REVIEWER ASSIGNMENT ERROR:",
+                                    err
+                                );
+
+                                alert(
+                                    err.message ||
+                                    "Could not assign the reviewer."
+                                );
+
+                            } finally {
+
+                                if (addReviewerActionBtn) {
+                                    addReviewerActionBtn.disabled = false;
+                                }
+
+                                actionMode = null;
+                            }
                         }
                     }
                 );
@@ -1698,6 +1866,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
+        // Backend endpoint used for the final decision.
+        // It must accept Pending, RevisionSubmitted and UnderDecision
+        // according to the workflow implemented here.
         await AdminApi.post(
             "/reviews/final",
             {
@@ -1740,6 +1911,56 @@ document.addEventListener("DOMContentLoaded", function () {
                     phase === "pending"
                 ) {
 
+                    /*
+                     * Main Project Details -> Final Decision
+                     * can send a decision directly on the first
+                     * student submission.
+                     */
+                    if (actionMode === "finalDecision") {
+
+                        confirmBtn.disabled = true;
+
+                        try {
+
+                            await sendFinalDecision();
+
+                            const decision =
+                                finalDecisionSelect
+                                    ? finalDecisionSelect.value
+                                    : "";
+
+                            await loadProject();
+
+                            alert(
+                                `The final decision "${formatStatusLabel(decision)}" has been sent to the student.`
+                            );
+
+                            if (statusModal) {
+                                statusModal.classList.remove("active");
+                            }
+
+                            actionMode = null;
+
+                        } catch (err) {
+
+                            console.error(
+                                "FIRST SUBMISSION FINAL DECISION ERROR:",
+                                err
+                            );
+
+                            alert(
+                                err.message ||
+                                "Could not submit the final decision."
+                            );
+
+                        } finally {
+
+                            confirmBtn.disabled = false;
+                        }
+
+                        return;
+                    }
+
                     if (
                         pendingReviewerPicks.length === 0
                     ) {
@@ -1751,35 +1972,26 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
 
-
-                    confirmBtn.disabled =
-                        true;
-
+                    confirmBtn.disabled = true;
 
                     try {
 
                         await sendProjectForReview();
 
-
                         const sentCount =
                             pendingReviewerPicks.length;
 
-
                         await loadProject();
-
 
                         alert(
                             `This project has been sent to ${sentCount} reviewer(s). Its status is now "Under Review."`
                         );
 
-
                         if (statusModal) {
-
-                            statusModal.classList.remove(
-                                "active"
-                            );
+                            statusModal.classList.remove("active");
                         }
 
+                        actionMode = null;
 
                     } catch (err) {
 
@@ -1788,25 +2000,18 @@ document.addEventListener("DOMContentLoaded", function () {
                             err
                         );
 
-
                         alert(
                             err.message ||
                             "Could not send this project for review."
                         );
 
-
                     } finally {
 
-                        confirmBtn.disabled =
-                            false;
+                        confirmBtn.disabled = false;
                     }
 
-
                     return;
-                }
-
-
-                // =================================================
+                }                // =================================================
                 // REVISION SUBMITTED
                 // =================================================
 
@@ -1815,13 +2020,58 @@ document.addEventListener("DOMContentLoaded", function () {
                 ) {
 
                     /*
-                     * THIS IS THE IMPORTANT UI LOGIC.
-                     *
-                     * Reviewer selected:
-                     *      -> Assign Reviewer
-                     *
-                     * No Reviewer selected:
-                     *      -> Final Decision
+                     * Main Project Details -> Final Decision:
+                     * send directly, without assigning a reviewer.
+                     */
+                    if (actionMode === "finalDecision") {
+
+                        confirmBtn.disabled = true;
+
+                        try {
+
+                            await sendFinalDecision();
+
+                            const decision =
+                                finalDecisionSelect
+                                    ? finalDecisionSelect.value
+                                    : "";
+
+                            await loadProject();
+
+                            alert(
+                                `The final decision "${formatStatusLabel(decision)}" has been sent to the student.`
+                            );
+
+                            if (statusModal) {
+                                statusModal.classList.remove("active");
+                            }
+
+                            actionMode = null;
+
+                        } catch (err) {
+
+                            console.error(
+                                "REVISION FINAL DECISION ERROR:",
+                                err
+                            );
+
+                            alert(
+                                err.message ||
+                                "Could not submit the final decision."
+                            );
+
+                        } finally {
+
+                            confirmBtn.disabled = false;
+                        }
+
+                        return;
+                    }
+
+                    /*
+                     * Old modal behavior:
+                     * reviewer selected -> assign
+                     * no reviewer -> final decision
                      */
 
                     if (
