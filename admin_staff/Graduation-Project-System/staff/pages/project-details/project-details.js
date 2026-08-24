@@ -103,15 +103,6 @@ document.addEventListener("DOMContentLoaded", function () {
             // -------------------------------------------------
             // 2. GET TEAM MEMBERS SEPARATELY
             // -------------------------------------------------
-            //
-            // Same concept used by the Student page:
-            //
-            // Api.getMembers(project.id)
-            //
-            // We first try AdminApi.getMembers if it exists.
-            // Otherwise we call the backend directly through
-            // AdminApi.get().
-            // -------------------------------------------------
 
             try {
 
@@ -155,10 +146,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // -------------------------------------------------
                 // FALLBACK
-                // -------------------------------------------------
-                //
-                // In case the project endpoint already contains
-                // the members.
                 // -------------------------------------------------
 
                 if (
@@ -581,6 +568,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return "pending";
         }
 
+        if (status === "RevisionSubmitted") {
+            return "revisionSubmitted";
+        }
+
         if (status === "UnderReview") {
             return "underReview";
         }
@@ -603,6 +594,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             Pending:
                 "Pending",
+
+            RevisionSubmitted:
+                "Revision Submitted",
 
             UnderReview:
                 "Under Review",
@@ -699,10 +693,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         // =====================================================
-        // PENDING
+        // PENDING / REVISION SUBMITTED
         // =====================================================
 
-        if (phase === "pending") {
+        if (
+            phase === "pending" ||
+            phase === "revisionSubmitted"
+        ) {
 
             pendingReviewerPicks.forEach(
                 (reviewer) => {
@@ -755,6 +752,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                                 renderReviewersList();
+
+
+                                if (
+                                    currentProject &&
+                                    currentProject.status ===
+                                    "RevisionSubmitted" &&
+                                    confirmBtn
+                                ) {
+
+                                    confirmBtn.textContent =
+                                        pendingReviewerPicks.length > 0
+                                            ? "Send for Review"
+                                            : "Send Final Decision";
+                                }
                             }
                         );
                     }
@@ -1027,9 +1038,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 `(${count})`;
         }
     }
-
-
-    // =========================================================
+        // =========================================================
     // MODAL STATE
     // =========================================================
 
@@ -1051,10 +1060,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         // =====================================================
-        // FINAL DECISION
+        // FINAL DECISION VISIBILITY
         // =====================================================
 
         if (finalDecisionRow) {
+
+            /*
+             * Final Decision:
+             *
+             * Pending       -> hidden
+             * UnderReview   -> hidden
+             * UnderDecision -> visible
+             * RevisionSubmitted -> visible
+             */
 
             finalDecisionRow.classList.toggle(
                 "hidden",
@@ -1065,17 +1083,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         // =====================================================
-        // ADD REVIEWER
+        // ADD REVIEWER VISIBILITY
         // =====================================================
 
         if (addReviewerBtn) {
 
+            /*
+             * Admin can add reviewer:
+             *
+             * 1. First submission
+             * 2. After student revision
+             */
+
             addReviewerBtn.style.display =
-                phase === "pending"
+                (
+                    phase === "pending" ||
+                    phase === "revisionSubmitted"
+                )
                     ? ""
                     : "none";
         }
 
+
+        // =====================================================
+        // CLEAR COMMENT
+        // =====================================================
 
         if (newCommentInput) {
 
@@ -1100,6 +1132,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 confirmBtn.textContent =
                     "Send for Review";
+
+                confirmBtn.style.display =
+                    "";
+            }
+        }
+
+
+        // =====================================================
+        // REVISION SUBMITTED
+        // =====================================================
+
+        else if (
+            phase === "revisionSubmitted"
+        ) {
+
+            if (modalPhaseHint) {
+
+                modalPhaseHint.textContent =
+                    "The student has submitted a revised project. You can either make a final decision directly or add a reviewer to review the new version.";
+            }
+
+
+            if (confirmBtn) {
+
+                /*
+                 * UI LOGIC:
+                 *
+                 * No reviewer selected:
+                 *      Send Final Decision
+                 *
+                 * Reviewer selected:
+                 *      Send for Review
+                 */
+
+                confirmBtn.textContent =
+                    pendingReviewerPicks.length > 0
+                        ? "Send for Review"
+                        : "Send Final Decision";
 
                 confirmBtn.style.display =
                     "";
@@ -1141,14 +1211,14 @@ document.addEventListener("DOMContentLoaded", function () {
             if (modalPhaseHint) {
 
                 modalPhaseHint.textContent =
-                    'Staff have finished reviewing this project. Select a final decision below, then click "Send for Review" to notify the student.';
+                    'Staff have finished reviewing this project. Select a final decision below, then click "Send Final Decision".';
             }
 
 
             if (confirmBtn) {
 
                 confirmBtn.textContent =
-                    "Send for Review";
+                    "Send Final Decision";
 
                 confirmBtn.style.display =
                     "";
@@ -1349,7 +1419,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     ? await StaffStorage.getAll()
                     : [];
 
-
         } catch (err) {
 
             doctorsPickerList.innerHTML = `
@@ -1371,8 +1440,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 doctor =>
                     !pendingReviewerPicks.some(
                         picked =>
-                            picked.id ===
-                            doctor.id
+                            String(picked.id) ===
+                            String(doctor.id)
                     )
             );
 
@@ -1421,6 +1490,20 @@ document.addEventListener("DOMContentLoaded", function () {
                     "click",
                     function () {
 
+                        const alreadySelected =
+                            pendingReviewerPicks.some(
+                                picked =>
+                                    String(picked.id) ===
+                                    String(doctor.id)
+                            );
+
+
+                        if (alreadySelected) {
+
+                            return;
+                        }
+
+
                         pendingReviewerPicks.push({
                             id: doctor.id,
                             full_name:
@@ -1429,6 +1512,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                         renderReviewersList();
+
+
+                        // =============================================
+                        // REVISION SUBMITTED UI LOGIC
+                        // =============================================
+
+                        if (
+                            currentProject &&
+                            currentProject.status ===
+                            "RevisionSubmitted" &&
+                            confirmBtn
+                        ) {
+
+                            confirmBtn.textContent =
+                                "Send for Review";
+                        }
 
 
                         if (
@@ -1452,7 +1551,152 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // SEND FOR REVIEW / FINAL DECISION
+    // SEND PROJECT FOR REVIEW
+    // =========================================================
+
+    async function sendProjectForReview() {
+
+        if (
+            !currentProject ||
+            pendingReviewerPicks.length === 0
+        ) {
+
+            throw new Error(
+                "Please add at least one reviewer."
+            );
+        }
+
+
+        const staffIds =
+            pendingReviewerPicks.map(
+                reviewer =>
+                    reviewer.id
+            );
+
+
+        const phase =
+            getPhase(
+                currentProject.status
+            );
+
+
+        // =====================================================
+        // FIRST ASSIGNMENT
+        // Pending -> UnderReview
+        // =====================================================
+
+        if (
+            phase === "pending"
+        ) {
+
+            await AdminApi.post(
+                "/assignments",
+                {
+                    projectId:
+                        currentProject.id,
+
+                    staffIds:
+                        staffIds
+                }
+            );
+
+            return;
+        }
+
+
+        // =====================================================
+        // RE-ASSIGNMENT AFTER REVISION
+        // RevisionSubmitted -> UnderReview
+        // =====================================================
+
+        if (
+            phase === "revisionSubmitted"
+        ) {
+
+            if (
+                typeof AdminApi.put !== "function"
+            ) {
+
+                throw new Error(
+                    "AdminApi.put is not available. The reassignment endpoint must support PUT /assignments/:projectId."
+                );
+            }
+
+
+            await AdminApi.put(
+                `/assignments/${currentProject.id}`,
+                {
+                    staffIds:
+                        staffIds
+                }
+            );
+
+            return;
+        }
+
+
+        throw new Error(
+            "Project cannot be sent for review in its current status."
+        );
+    }
+
+
+    // =========================================================
+    // SEND FINAL DECISION
+    // =========================================================
+
+    async function sendFinalDecision() {
+
+        const decision =
+            finalDecisionSelect
+                ? finalDecisionSelect.value
+                : "";
+
+
+        const commentText =
+            newCommentInput
+                ? newCommentInput.value.trim()
+                : "";
+
+
+        if (!decision) {
+
+            throw new Error(
+                "Please select a final decision before sending."
+            );
+        }
+
+
+        if (
+            decision !== "Accepted" &&
+            !commentText
+        ) {
+
+            throw new Error(
+                "Comments are required unless the decision is Accepted."
+            );
+        }
+
+
+        await AdminApi.post(
+            "/reviews/final",
+            {
+                projectId:
+                    currentProject.id,
+
+                decision:
+                    decision,
+
+                comments:
+                    commentText ||
+                    undefined
+            }
+        );
+    }
+
+
+    // =========================================================
+    // CONFIRM BUTTON
     // =========================================================
 
     if (confirmBtn) {
@@ -1467,17 +1711,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
 
 
-                const commentText =
-                    newCommentInput
-                        ? newCommentInput.value.trim()
-                        : "";
-
-
                 // =================================================
-                // SEND PROJECT TO STAFF
+                // FIRST SUBMISSION
+                // Pending -> Reviewer
                 // =================================================
 
-                if (phase === "pending") {
+                if (
+                    phase === "pending"
+                ) {
 
                     if (
                         pendingReviewerPicks.length === 0
@@ -1491,24 +1732,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
 
-                    confirmBtn.disabled = true;
+                    confirmBtn.disabled =
+                        true;
 
 
                     try {
 
-                        await AdminApi.post(
-                            "/assignments",
-                            {
-                                projectId:
-                                    currentProject.id,
-
-                                staffIds:
-                                    pendingReviewerPicks.map(
-                                        reviewer =>
-                                            reviewer.id
-                                    )
-                            }
-                        );
+                        await sendProjectForReview();
 
 
                         const sentCount =
@@ -1557,71 +1787,142 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 // =================================================
-                // ADMIN FINAL DECISION
+                // REVISION SUBMITTED
+                //
+                // Admin has two choices:
+                //
+                // 1. Reviewer selected
+                //    -> Assign Reviewer
+                //
+                // 2. No Reviewer selected
+                //    -> Final Decision
                 // =================================================
 
                 if (
-                    phase === "underDecision" ||
-                    phase === "done"
+                    phase === "revisionSubmitted"
                 ) {
 
-                    const decision =
-                        finalDecisionSelect
-                            ? finalDecisionSelect.value
-                            : "";
-
-
-                    if (!decision) {
-
-                        alert(
-                            "Please select a final decision before sending."
-                        );
-
-                        return;
-                    }
-
-
-                    if (
-                        decision !== "Accepted" &&
-                        !commentText
-                    ) {
-
-                        alert(
-                            "Comments are required unless the decision is Accepted."
-                        );
-
-                        return;
-                    }
-
-
-                    confirmBtn.disabled = true;
+                    confirmBtn.disabled =
+                        true;
 
 
                     try {
 
-                        await AdminApi.post(
-                            "/reviews/final",
-                            {
-                                projectId:
-                                    currentProject.id,
+                        // =============================================
+                        // OPTION 1: ASSIGN REVIEWER
+                        // =============================================
 
-                                decision:
-                                    decision,
+                        if (
+                            pendingReviewerPicks.length > 0
+                        ) {
 
-                                comments:
-                                    commentText ||
-                                    undefined
-                            }
+                            await sendProjectForReview();
+
+
+                            const sentCount =
+                                pendingReviewerPicks.length;
+
+
+                            await loadProject();
+
+
+                            alert(
+                                `The revised project has been sent to ${sentCount} reviewer(s) for review.`
+                            );
+
+
+                        }
+
+                        // =============================================
+                        // OPTION 2: FINAL DECISION DIRECTLY
+                        // =============================================
+
+                        else {
+
+                            await sendFinalDecision();
+
+
+                            const decision =
+                                finalDecisionSelect
+                                    ? finalDecisionSelect.value
+                                    : "";
+
+
+                            await loadProject();
+
+
+                            alert(
+                                `The final decision "${formatStatusLabel(
+                                    decision
+                                )}" has been sent to the student.`
+                            );
+                        }
+
+
+                        if (statusModal) {
+
+                            statusModal.classList.remove(
+                                "active"
+                            );
+                        }
+
+
+                    } catch (err) {
+
+                        console.error(
+                            "REVISION ACTION ERROR:",
+                            err
                         );
+
+
+                        alert(
+                            err.message ||
+                            "Could not complete the selected action."
+                        );
+
+
+                    } finally {
+
+                        confirmBtn.disabled =
+                            false;
+                    }
+
+
+                    return;
+                }
+
+
+                // =================================================
+                // UNDER DECISION
+                // Reviewer finished -> Final Decision
+                // =================================================
+
+                if (
+                    phase === "underDecision"
+                ) {
+
+                    confirmBtn.disabled =
+                        true;
+
+
+                    try {
+
+                        await sendFinalDecision();
+
+
+                        const decision =
+                            finalDecisionSelect
+                                ? finalDecisionSelect.value
+                                : "";
 
 
                         await loadProject();
 
 
                         alert(
-                            `The final decision ("${formatStatusLabel(
+                            `The final decision "${formatStatusLabel(
                                 decision
-                            )}") has been sent. The student will now see this decision along with the comments.`
+                            )}" has been sent to the student.`
                         );
 
 
@@ -1652,7 +1953,35 @@ document.addEventListener("DOMContentLoaded", function () {
                         confirmBtn.disabled =
                             false;
                     }
+
+
+                    return;
                 }
+
+
+                // =================================================
+                // UNDER REVIEW
+                // =================================================
+
+                if (
+                    phase === "underReview"
+                ) {
+
+                    alert(
+                        "This project is currently under review."
+                    );
+
+                    return;
+                }
+
+
+                // =================================================
+                // DONE
+                // =================================================
+
+                alert(
+                    "This project has already received its final decision."
+                );
             }
         );
     }
