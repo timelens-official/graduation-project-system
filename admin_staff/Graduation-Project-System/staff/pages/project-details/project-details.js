@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", async function () {
+    const loggedInDoctorName =
+    document.getElementById("loggedInDoctorName");
+
+if (loggedInDoctorName) {
+    const staffUser = StaffApi.getUser();
+
+    loggedInDoctorName.textContent =
+        staffUser?.full_name || "Staff";
+}
 
     // =========================================================
     // 1. GET PROJECT ID FROM URL
