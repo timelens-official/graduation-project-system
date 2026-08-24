@@ -1,678 +1,249 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Project Details - Staff Portal</title>
-
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <!-- Shared Styles -->
     <link rel="stylesheet" href="../../shared/css/reset.css">
-
     <link rel="stylesheet" href="../../shared/css/layout.css">
-
+    <!-- Page Custom Style -->
     <link rel="stylesheet" href="project-details.css">
 </head>
-
-
 <body>
 
     <div class="app-layout">
-
-        <!-- =====================================================
-         SIDEBAR
-         ===================================================== -->
-
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
+        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-
             <div class="sidebar-header">
-
                 <i class="fa-solid fa-graduation-cap sidebar-logo"></i>
-
-                <h2>
-                    Graduation Projects<br>
-                    Review System
-                </h2>
-
+                <h2>Graduation Projects<br>Review System</h2>
             </div>
-
+            
             <hr class="sidebar-divider">
 
             <nav class="sidebar-nav">
-
                 <ul>
-
                     <li>
                         <a href="../dashboard/index.html">
-
                             <i class="fa-solid fa-house"></i>
-
-                            <span>
-                                Dashboard
-                            </span>
-
+                            <span>Dashboard</span>
                         </a>
                     </li>
-
-
                     <li>
                         <a href="../developers/index.html">
-
                             <i class="fa-solid fa-users"></i>
-
-                            <span>
-                                About Developers
-                            </span>
-
+                            <span>About Developers</span>
                         </a>
                     </li>
-
-
                     <li>
                         <a href="#" id="staffLogoutBtn">
-
                             <i class="fa-solid fa-right-from-bracket"></i>
-
-                            <span>
-                                Logout
-                            </span>
-
+                            <span>Logout</span>
                         </a>
                     </li>
-
                 </ul>
-
-
                 <div class="sidebar-illustration">
-
                     <img src="../../shared/assests/image.png" alt="Illustration">
-
                 </div>
-
             </nav>
-
         </aside>
 
-
-        <!-- =====================================================
-         MAIN CONTENT
-         ===================================================== -->
-
+        <!-- Main Content Area -->
         <main class="main-content">
-
-
-            <!-- =================================================
-             TOPBAR
-             ================================================= -->
-
+            <!-- Topbar Header -->
             <div class="topbar">
-
                 <button type="button" class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle menu">
-
                     <i class="fa-solid fa-bars"></i>
-
                 </button>
-
-
                 <div class="user-profile-badge">
-
                     <i class="fa-solid fa-circle-user"></i>
-
-                    <!-- IMPORTANT:
-                     This is now populated from StaffApi.getUser()
-                -->
-
-                    <span id="loggedInDoctorName">
-                        -
-                    </span>
-
+                    <span id="loggedInDoctorName">Dr. Mostafa Shobeir</span>
                 </div>
-
-
                 <div class="breadcrumb-title">
-
                     <i class="fa-solid fa-house"></i>
-
-                    Home /
-                    <span>
-                        View Details
-                    </span>
-
+                    Home / <span>View Details</span>
                 </div>
-
             </div>
 
+            <!-- Content -->
+            <div class="project-details-grid animate-fade-up">
 
-            <!-- =================================================
-             PROJECT DETAILS
-             ================================================= -->
-
-            <div id="project-content" class="project-details-grid animate-fade-up">
-
-
-                <!-- =================================================
-                 LEFT COLUMN
-                 ================================================= -->
-
+                <!-- Left Column: Team & Members Info -->
                 <div class="details-column">
 
-
-                    <!-- =================================================
-                     TEAM INFORMATION
-                     ================================================= -->
-
-                    <div class="card">
-
-                        <div class="card-header">
-
-                            <span class="card-title">
-                                Team Information
-                            </span>
-
-                        </div>
-
-
-                        <div class="card-body">
-
-                            <div class="team-info-grid">
-
-
-                                <!-- Academic Year -->
-
-                                <div class="detail-item">
-
-                                    <div class="detail-label">
-                                        Academic Year
-                                    </div>
-
-                                    <div class="detail-value" id="d-year">
-                                        -
-                                    </div>
-
-                                </div>
-
-
-                                <!-- Department -->
-
-                                <div class="detail-item">
-
-                                    <div class="detail-label">
-                                        Department
-                                    </div>
-
-                                    <div class="detail-value" id="d-dept">
-                                        -
-                                    </div>
-
-                                </div>
-
-
-                                <!-- Program -->
-
-                                <div class="detail-item">
-
-                                    <div class="detail-label">
-                                        Program
-                                    </div>
-
-                                    <div class="detail-value" id="d-program">
-                                        -
-                                    </div>
-
-                                </div>
-
-
-                                <!-- Regulation -->
-
-                                <div class="detail-item">
-
-                                    <div class="detail-label">
-                                        Regulation
-                                    </div>
-
-                                    <div class="detail-value" id="d-regulation">
-                                        -
-                                    </div>
-
-                                </div>
-
-
-                                <!-- Doctor Supervisor -->
-
-                                <div class="detail-item">
-
-                                    <div class="detail-label">
-                                        Supervisor (Dr.)
-                                    </div>
-
-                                    <div class="detail-value" id="d-supervisor">
-                                        -
-                                    </div>
-
-                                </div>
-
-
-                                <!-- TA Supervisor -->
-
-                                <div class="detail-item">
-
-                                    <div class="detail-label">
-                                        Supervisor (TA.)
-                                    </div>
-
-                                    <div class="detail-value" id="d-assistant-supervisor">
-                                        -
-                                    </div>
-
-                                </div>
-
-
+                    <!-- 1. Team Information -->
+                    <div class="details-card">
+                        <h3 class="card-header-title">Team Information</h3>
+                        <div class="team-info-grid">
+                            <div class="info-block">
+                                <div class="info-label">Department</div>
+                                <div class="info-value" id="pDepartment">Computer Science</div>
                             </div>
-
+                            <div class="info-block">
+                                <div class="info-label">Program</div>
+                                <div class="info-value" id="pProgram">Computer Science</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">Academic Year</div>
+                                <div class="info-value" id="pAcademicYear">2025/2026</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">Project Status</div>
+                                <div class="info-value"><span id="pStatus" class="status-badge status-warning">Pending Review</span></div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">Doctor Supervisor</div>
+                                <div class="info-value" id="pSupervisorDoctor">—</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">TA Supervisor</div>
+                                <div class="info-value" id="pSupervisorTa">—</div>
+                            </div>
                         </div>
-
                     </div>
 
-
-                    <!-- =================================================
-                     TEAM LEADER
-                     ================================================= -->
-
-                    <div class="card">
-
-                        <div class="card-header">
-
-                            <span class="card-title">
-                                Team Leader
-                            </span>
-
+                    <!-- 2. Team Leader -->
+                    <div class="details-card">
+                        <h3 class="card-header-title">Team Leader</h3>
+                        <div class="table-scroll">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Role / Track</th>
+                                    <th>Student ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pLeaderTableBody">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
                         </div>
-
-
-                        <div class="card-body">
-
-                            <div class="table-container">
-
-                                <table class="data-table">
-
-                                    <thead>
-
-                                        <tr>
-
-                                            <th>
-                                                Name
-                                            </th>
-
-                                            <th>
-                                                Role/Specialization
-                                            </th>
-
-                                            <th>
-                                                Phone Number
-                                            </th>
-
-                                            <th>
-                                                Student ID
-                                            </th>
-
-                                        </tr>
-
-                                    </thead>
-
-
-                                    <tbody id="d-leader-row">
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
                     </div>
 
-
-                    <!-- =================================================
-                     TEAM MEMBERS
-                     ================================================= -->
-
-                    <div class="card">
-
-                        <div class="card-header">
-
-                            <span class="card-title">
-                                Team Members
-                            </span>
-
-                            <span class="badge badge-primary" id="d-members-count">
-                                0
-                            </span>
-
+                    <!-- 3. Team Members -->
+                    <div class="details-card">
+                        <h3 class="card-header-title">Team Members</h3>
+                        <div class="table-scroll">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Role / Track</th>
+                                    <th>Student ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pMembersTableBody">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
                         </div>
-
-
-                        <div class="card-body">
-
-                            <div class="table-container">
-
-                                <table class="data-table">
-
-                                    <thead>
-
-                                        <tr>
-
-                                            <th>
-                                                Name
-                                            </th>
-
-                                            <th>
-                                                Role/Specialization
-                                            </th>
-
-                                            <th>
-                                                Phone Number
-                                            </th>
-
-                                            <th>
-                                                Student ID
-                                            </th>
-
-                                        </tr>
-
-                                    </thead>
-
-
-                                    <tbody id="d-members-list">
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
                     </div>
 
                 </div>
 
-
-                <!-- =================================================
-                 RIGHT COLUMN
-                 ================================================= -->
-
+                <!-- Right Column: Project Details -->
                 <div class="details-column">
-
-
                     <div class="details-card">
-
-
-                        <div class="project-info-header">
-
-                            <h3 class="card-header-title">
-                                Project Information
-                            </h3>
-
-
-                            <span class="status-badge" id="project-status-badge">
-
-                                <span class="status-dot"></span>
-
-                                <span id="project-status-label">
-                                    -
-                                </span>
-
-                            </span>
-
-                        </div>
-
-
-                        <!-- Project Title -->
+                        <h3 class="card-header-title">Project Information</h3>
 
                         <div class="info-block">
-
-                            <div class="info-label">
-                                Project Title
-                            </div>
-
-                            <div class="info-value" id="pTitle">
-                                -
-                            </div>
-
+                            <div class="info-label">Project Title</div>
+                            <div class="info-value" id="pTitle">Potato Rot Processing System</div>
                         </div>
-
-
-                        <!-- Project Idea -->
 
                         <div class="info-block">
-
-                            <div class="info-label">
-                                Project Idea
-                            </div>
-
-                            <div class="info-value" id="pIdea">
-                                -
-                            </div>
-
+                            <div class="info-label">Project Idea</div>
+                            <div class="info-value" id="pIdea">Loading project idea...</div>
                         </div>
-
-
-                        <!-- Problem Definition -->
 
                         <div class="info-block">
-
-                            <div class="info-label">
-                                Problem Definition
-                            </div>
-
-                            <div class="info-value" id="pProblem">
-                                -
-                            </div>
-
+                            <div class="info-label">Problem Definition</div>
+                            <div class="info-value" id="pProblem">Loading problem statement...</div>
                         </div>
-
-
-                        <!-- Objectives -->
 
                         <div class="info-block">
-
-                            <div class="info-label">
-                                Problem Objectives
-                            </div>
-
-                            <div class="info-value" id="pObjectives">
-                                -
-                            </div>
-
+                            <div class="info-label">Problem Objectives</div>
+                            <div class="info-value" id="pObjectives">Loading problem objectives...</div>
                         </div>
-
-
-                        <!-- Expected Contribution -->
 
                         <div class="info-block">
-
-                            <div class="info-label">
-                                Expected Contribution
-                            </div>
-
-                            <div class="info-value" id="pContribution">
-                                -
-                            </div>
-
+                            <div class="info-label">Expected Contribution</div>
+                            <div class="info-value" id="pContribution">Loading expected contribution...</div>
                         </div>
-
-
-                        <!-- Review -->
 
                         <button class="btn-status-action" id="openReviewModalBtn">
-
-                            <i class="fa-solid fa-clipboard-check"></i>
-
-                            Review Project
-
+                            <i class="fa-solid fa-clipboard-check"></i> Review Project
                         </button>
-
-
                     </div>
-
                 </div>
 
             </div>
 
-
-            <!-- =================================================
-             BACK
-             ================================================= -->
-
+            <!-- Return Back Button -->
             <div class="back-button-wrapper">
-
                 <a href="../dashboard/index.html" class="btn-back">
                     Back
                 </a>
-
             </div>
-
         </main>
-
     </div>
 
-
-    <!-- =========================================================
-     REVIEW MODAL
-     ========================================================= -->
-
+    <!-- Review Modal (شاشة المراجعة المنبثقة) -->
     <div id="reviewModal" class="modal-overlay">
-
         <div class="modal-content">
-
-
             <div class="modal-header">
-
-                <h2>
-                    Review Project Decision
-                </h2>
-
-                <button id="closeModalBtn" class="close-btn" type="button">
-                    &times;
-                </button>
-
+                <h2>Review Project Decision</h2>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
             </div>
-
-
+            
             <div class="modal-body">
-
                 <form id="reviewForm">
-
-
-                    <label class="form-label">
-                        Select Project Status:
-                    </label>
-
-
+                    <label class="form-label">Select Project Status:</label>
                     <div class="radio-options">
-
-
                         <label class="radio-card success">
-
                             <input type="radio" name="reviewStatus" value="Accepted" required>
-
-                            <span>
-                                🟢 Accepted
-                            </span>
-
+                            <span>🟢 Accepted</span>
                         </label>
-
-
                         <label class="radio-card warning">
-
                             <input type="radio" name="reviewStatus" value="MinorRevision">
-
-                            <span>
-                                🟠 Needs Minor Revision
-                            </span>
-
+                            <span>🟠 Needs Minor Revision</span>
                         </label>
-
-
                         <label class="radio-card warning">
-
                             <input type="radio" name="reviewStatus" value="MajorRevision">
-
-                            <span>
-                                🟠 Needs Major Revision
-                            </span>
-
+                            <span>🟠 Needs Major Revision</span>
                         </label>
-
-
                         <label class="radio-card danger">
-
                             <input type="radio" name="reviewStatus" value="Rejected">
-
-                            <span>
-                                🔴 Rejected
-                            </span>
-
+                            <span>🔴 Rejected</span>
                         </label>
-
-
                     </div>
-
 
                     <div class="form-group">
-
-                        <label for="doctorComment" class="form-label">
-                            Reviewer Comments / Notes:
-                        </label>
-
-                        <textarea id="doctorComment" rows="4"
-                            placeholder="Write your feedback for the students or admin here..." required></textarea>
-
+                        <label for="doctorComment" class="form-label">Reviewer Comments / Notes:</label>
+                        <textarea id="doctorComment" rows="4" placeholder="Write your feedback for the students or admin here..." required></textarea>
                     </div>
-
 
                     <div class="modal-footer">
-
-                        <button type="button" id="cancelModalBtn" class="btn btn-outline-primary">
-                            Cancel
-                        </button>
-
-
-                        <button type="submit" class="btn btn-primary">
-                            Submit Review
-                        </button>
-
+                        <button type="button" id="cancelModalBtn" class="btn btn-outline-primary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
                     </div>
-
-
                 </form>
-
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- =========================================================
-     SCRIPTS
-     ========================================================= -->
-
+    <!-- JS Files -->
     <script src="/api/runtime-config.js"></script>
-
-    <script src="../../shared/js/api.js?v=2"></script>
-
-    <script src="../../shared/js/layout.js?v=2"></script>
-
-    <script src="../../shared/js/animations.js?v=2"></script>
-
-    <script src="project-details.js?v=2"></script>
-
+    <script src="../../shared/js/api.js?v=1"></script>
+<script src="../../shared/js/layout.js?v=1"></script>
+    <script src="../../shared/js/animations.js?v=1"></script>
+    <script src="project-details.js?v=1"></script>
 </body>
-
 </html>
