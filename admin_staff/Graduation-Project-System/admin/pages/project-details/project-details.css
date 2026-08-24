@@ -1041,3 +1041,63 @@
     }
 
 }
+
+/* =========================================================
+   PROJECT ACTION BUTTONS
+   ========================================================= */
+
+.project-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.project-action-btn {
+    width: 100%;
+    min-height: 46px;
+    border: none;
+    border-radius: 10px;
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.project-action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.project-action-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-assign-reviewer {
+    background: #2563EB;
+}
+
+.btn-assign-reviewer:hover {
+    background: #1D4ED8;
+}
+
+.btn-final-decision {
+    background: #0D47A1;
+}
+
+.btn-final-decision:hover {
+    background: #0A3882;
+}
+
+@media (max-width: 600px) {
+    .project-action-buttons {
+        grid-template-columns: 1fr;
+    }
+}
