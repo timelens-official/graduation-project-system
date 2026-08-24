@@ -3,15 +3,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const projectId = params.get("id");
 
-    const statusModal = document.getElementById("statusModal");
-    const closeModalBtn = document.getElementById("closeModalBtn");
+    // =========================================================
+    // ELEMENTS
+    // =========================================================
 
+    const statusModal =
+        document.getElementById("statusModal");
+
+    const closeModalBtn =
+        document.getElementById("closeModalBtn");
+
+    // Main Project Details buttons
     const addReviewerActionBtn =
         document.getElementById("addReviewerActionBtn");
 
     const finalDecisionActionBtn =
         document.getElementById("finalDecisionActionBtn");
 
+    // Modal elements
     const addReviewerBtn =
         document.getElementById("addReviewerBtn");
 
@@ -26,9 +35,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const doctorsPickerList =
         document.getElementById("doctorsPickerList");
-
-    const confirmReviewerSelectionBtn =
-        document.getElementById("confirmReviewerSelectionBtn");
 
     const newCommentInput =
         document.getElementById("newCommentInput");
@@ -58,13 +64,33 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("finalDecisionSelect");
 
 
+    // =========================================================
+    // STATE
+    // =========================================================
+
     let currentProject = null;
+
     let teamMembers = [];
+
     let pendingReviewerPicks = [];
+
+    /*
+     * Action modes:
+     *
+     * null
+     * "assignReviewer"
+     * "finalDecision"
+     * "modal"
+     */
     let actionMode = null;
 
 
+    // =========================================================
+    // PROJECT ID CHECK
+    // =========================================================
+
     if (!projectId) {
+
         alert("No project selected.");
 
         window.location.href =
@@ -74,20 +100,33 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // LOAD PROJECT
+    // =========================================================
+
     async function loadProject() {
 
         try {
+
+            // -------------------------------------------------
+            // GET PROJECT
+            // -------------------------------------------------
 
             currentProject =
                 await AdminApi.get(
                     `/projects/${projectId}`
                 );
 
+
             console.log(
                 "ADMIN PROJECT RESPONSE:",
                 currentProject
             );
 
+
+            // -------------------------------------------------
+            // GET TEAM MEMBERS
+            // -------------------------------------------------
 
             try {
 
@@ -117,6 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 if (!Array.isArray(teamMembers)) {
+
                     teamMembers = [];
                 }
 
@@ -127,6 +167,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     membersError
                 );
 
+
+                // -------------------------------------------------
+                // FALLBACK
+                // -------------------------------------------------
 
                 if (
                     Array.isArray(
@@ -153,11 +197,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
+            // Reset temporary selections
             pendingReviewerPicks = [];
-            actionMode = null;
+
+
+            // -------------------------------------------------
+            // RENDER
+            // -------------------------------------------------
 
             renderProjectInfo();
+
             renderActionButtons();
+
             renderModalState();
 
 
@@ -168,6 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 err
             );
 
+
             alert(
                 err.message ||
                 "Could not load this project."
@@ -175,6 +227,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+
+    // =========================================================
+    // RENDER PROJECT INFORMATION
+    // =========================================================
 
     function renderProjectInfo() {
 
@@ -184,9 +240,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 const el =
                     document.getElementById(id);
 
+
                 if (!el) {
                     return;
                 }
+
 
                 if (
                     value !== undefined &&
@@ -194,45 +252,60 @@ document.addEventListener("DOMContentLoaded", function () {
                     String(value).trim() !== ""
                 ) {
 
-                    el.textContent = value;
+                    el.textContent =
+                        value;
 
                 } else {
 
-                    el.textContent = "—";
+                    el.textContent =
+                        "—";
                 }
             };
 
+
+        // =====================================================
+        // TEAM INFORMATION
+        // =====================================================
 
         setText(
             "teamDepartment",
             currentProject.department
         );
 
+
         setText(
             "teamProgram",
             currentProject.program_name
         );
+
 
         setText(
             "teamAcademicYear",
             currentProject.academic_year
         );
 
+
         setText(
             "teamRegulation",
             currentProject.regulation
         );
+
 
         setText(
             "teamSupervisorDoctor",
             currentProject.supervisor_doctor
         );
 
+
         setText(
             "teamSupervisorTa",
             currentProject.supervisor_ta
         );
 
+
+        // =====================================================
+        // PROJECT INFORMATION
+        // =====================================================
 
         setText(
             "projectTitleAr",
@@ -244,6 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById(
                 "projectTitleEn"
             );
+
 
         if (titleEn) {
 
@@ -259,25 +333,37 @@ document.addEventListener("DOMContentLoaded", function () {
             currentProject.idea
         );
 
+
         setText(
             "projectProblem",
             currentProject.problem_definition
         );
+
 
         setText(
             "projectObjectives",
             currentProject.objectives
         );
 
+
+
         setText(
             "projectContribution",
             currentProject.expected_contribution
         );
 
+        
+        // =====================================================
+        // TEAM MEMBERS
+        // =====================================================
 
         renderTeamMembers();
     }
 
+
+    // =========================================================
+    // RENDER TEAM MEMBERS
+    // =========================================================
 
     function renderTeamMembers() {
 
@@ -299,6 +385,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             member.studentId ??
                             null,
 
+
                         name:
                             member.member_name ??
                             member.memberName ??
@@ -307,11 +394,13 @@ document.addEventListener("DOMContentLoaded", function () {
                             member.name ??
                             "—",
 
+
                         phone:
                             member.member_phone ??
                             member.memberPhone ??
                             member.phone ??
                             "—",
+
 
                         role:
                             member.track_or_role ??
@@ -319,12 +408,14 @@ document.addEventListener("DOMContentLoaded", function () {
                             member.role ??
                             "—",
 
+
                         studentCode:
                             member.student_code ??
                             member.studentCode ??
                             member.student_id ??
                             member.studentId ??
                             "—",
+
 
                         isLeader:
                             member.is_leader === true ||
@@ -343,6 +434,10 @@ document.addEventListener("DOMContentLoaded", function () {
             normalizedMembers
         );
 
+
+        // =====================================================
+        // BUILD MEMBER CELLS
+        // =====================================================
 
         const buildMemberCells =
             (member) => {
@@ -377,12 +472,20 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
 
+        // =====================================================
+        // FIND LEADER
+        // =====================================================
+
         const leader =
             normalizedMembers.find(
                 member =>
                     member.isLeader === true
             );
 
+
+        // =====================================================
+        // LEADER TABLE
+        // =====================================================
 
         const leaderBody =
             document.getElementById(
@@ -420,6 +523,10 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+
+        // =====================================================
+        // MEMBERS TABLE
+        // =====================================================
 
         const membersBody =
             document.getElementById(
@@ -466,6 +573,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // ESCAPE HTML
+    // =========================================================
+
     function escapeHtml(value) {
 
         if (
@@ -480,34 +591,60 @@ document.addEventListener("DOMContentLoaded", function () {
         const div =
             document.createElement("div");
 
+
         div.textContent =
             String(value);
+
 
         return div.innerHTML;
     }
 
 
+    // =========================================================
+    // WORKFLOW PHASE
+    // =========================================================
+
     function getPhase(status) {
 
-        if (status === "Pending") {
+        if (
+            status === "Pending"
+        ) {
+
             return "pending";
         }
 
-        if (status === "RevisionSubmitted") {
+
+        if (
+            status === "RevisionSubmitted"
+        ) {
+
             return "revisionSubmitted";
         }
 
-        if (status === "UnderReview") {
+
+        if (
+            status === "UnderReview"
+        ) {
+
             return "underReview";
         }
 
-        if (status === "UnderDecision") {
+
+        if (
+            status === "UnderDecision"
+        ) {
+
             return "underDecision";
         }
+
 
         return "done";
     }
 
+
+    // =========================================================
+    // STATUS LABEL
+    // =========================================================
 
     function formatStatusLabel(status) {
 
@@ -547,6 +684,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // STATUS BADGE
+    // =========================================================
+
     function renderStatusBadge(status) {
 
         if (
@@ -568,7 +709,9 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
-        if (status === "UnderReview") {
+        if (
+            status === "UnderReview"
+        ) {
 
             projectStatusBadge.classList.add(
                 "status-under-review"
@@ -576,7 +719,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        if (status === "UnderDecision") {
+        if (
+            status === "UnderDecision"
+        ) {
 
             projectStatusBadge.classList.add(
                 "status-under-decision"
@@ -585,42 +730,72 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // MAIN PROJECT DETAILS BUTTONS
+    // =========================================================
+
     function renderActionButtons() {
 
         if (!currentProject) {
             return;
         }
 
+
         const phase =
             getPhase(
                 currentProject.status
             );
 
-        // Main page buttons:
-        // Pending -> Add Reviewer only
-        // UnderReview -> no action
-        // UnderDecision -> Final Decision only
-        // RevisionSubmitted -> Add Reviewer + Final Decision
-        // Done -> no action
+
+        // -----------------------------------------------------
+        // ADD REVIEWER
+        // -----------------------------------------------------
 
         if (addReviewerActionBtn) {
 
-            addReviewerActionBtn.style.display =
+            if (
                 phase === "pending" ||
                 phase === "revisionSubmitted"
-                    ? ""
-                    : "none";
+            ) {
+
+                addReviewerActionBtn.style.display =
+                    "";
+
+            } else {
+
+                addReviewerActionBtn.style.display =
+                    "none";
+            }
         }
+
+
+        // -----------------------------------------------------
+        // FINAL DECISION
+        // -----------------------------------------------------
 
         if (finalDecisionActionBtn) {
 
-            finalDecisionActionBtn.style.display =
-                phase === "underDecision" ||
-                phase === "revisionSubmitted"
-                    ? ""
-                    : "none";
+            if (
+                phase === "pending" ||
+                phase === "revisionSubmitted" ||
+                phase === "underDecision"
+            ) {
+
+                finalDecisionActionBtn.style.display =
+                    "";
+
+            } else {
+
+                finalDecisionActionBtn.style.display =
+                    "none";
+            }
         }
     }
+
+
+    // =========================================================
+    // REVIEWERS LIST
+    // =========================================================
 
     function renderReviewersList() {
 
@@ -643,6 +818,10 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
+        // =====================================================
+        // TEMPORARY SELECTED REVIEWERS
+        // =====================================================
+
         if (
             phase === "pending" ||
             phase === "revisionSubmitted"
@@ -655,6 +834,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.createElement(
                             "div"
                         );
+
 
                     row.className =
                         "reviewer-item";
@@ -707,7 +887,17 @@ document.addEventListener("DOMContentLoaded", function () {
                                 renderReviewersList();
 
 
-                                updateReviewerPickerConfirmButton();
+                                if (
+                                    currentProject.status ===
+                                    "RevisionSubmitted" &&
+                                    confirmBtn
+                                ) {
+
+                                    confirmBtn.textContent =
+                                        pendingReviewerPicks.length > 0
+                                            ? "Send for Review"
+                                            : "Send Final Decision";
+                                }
                             }
                         );
                     }
@@ -723,6 +913,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
+        // =====================================================
+        // SAVED REVIEWERS
+        // =====================================================
 
         const reviews =
             Array.isArray(
@@ -763,6 +957,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.createElement(
                         "div"
                     );
+
 
                 row.className =
                     "reviewer-item";
@@ -822,6 +1017,10 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
+        // =====================================================
+        // FALLBACK IF ONLY REVIEWS EXIST
+        // =====================================================
+
         if (
             reviewers.length === 0 &&
             reviews.length > 0
@@ -834,6 +1033,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.createElement(
                             "div"
                         );
+
 
                     row.className =
                         "reviewer-item";
@@ -882,6 +1082,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // COMMENTS
+    // =========================================================
+
     function addCommentCardDOM(
         author,
         text
@@ -891,6 +1095,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.createElement(
                 "div"
             );
+
 
         card.className =
             "comment-card";
@@ -928,6 +1133,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         commentsList.innerHTML = "";
 
+
         let count = 0;
 
 
@@ -942,7 +1148,10 @@ document.addEventListener("DOMContentLoaded", function () {
         reviews.forEach(
             review => {
 
-                if (!review.comments) {
+                if (
+                    !review.comments
+                ) {
+
                     return;
                 }
 
@@ -953,10 +1162,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     review.comments
                 );
 
+
                 count++;
             }
         );
 
+
+        // -----------------------------------------------------
+        // FINAL DECISION COMMENT
+        // -----------------------------------------------------
 
         if (
             currentProject.finalDecision &&
@@ -970,6 +1184,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     .admin_comments
             );
 
+
             count++;
         }
 
@@ -982,117 +1197,226 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // MODAL STATE
+    // =========================================================
+
     function renderModalState() {
 
         if (!currentProject) {
             return;
         }
 
-        const status = currentProject.status;
-        const phase = getPhase(status);
+
+        const status =
+            currentProject.status;
+
+
+        const phase =
+            getPhase(status);
+
 
         renderStatusBadge(status);
+
         renderActionButtons();
+
         renderReviewersList();
+
         renderCommentsList();
 
-        // Final Decision is allowed ONLY after:
-        // 1) reviewers finish -> UnderDecision
-        // 2) student submits a revision -> RevisionSubmitted
+
+        // =====================================================
+        // FINAL DECISION ROW
+        // =====================================================
+
         if (finalDecisionRow) {
+
+            /*
+             * Final Decision is available:
+             *
+             * Pending
+             * RevisionSubmitted
+             * UnderDecision
+             *
+             * Hidden while UnderReview.
+             *
+             * Hidden after final decision.
+             */
+
             finalDecisionRow.classList.toggle(
                 "hidden",
-                phase !== "underDecision" &&
-                phase !== "revisionSubmitted"
+                phase === "underReview" ||
+                phase === "done"
             );
         }
 
-        // The Add Reviewer button INSIDE the modal is only for
-        // reassignment after the student submits a revision.
+
+        // =====================================================
+        // MODAL ADD REVIEWER
+        // =====================================================
+
         if (addReviewerBtn) {
+
             addReviewerBtn.style.display =
-                phase === "revisionSubmitted" ? "" : "none";
+                (
+                    phase === "pending" ||
+                    phase === "revisionSubmitted"
+                )
+                    ? ""
+                    : "none";
         }
 
-        // Pending = initial assignment only.
-        if (phase === "pending") {
+
+        // =====================================================
+        // PENDING
+        // =====================================================
+
+        if (
+            phase === "pending"
+        ) {
 
             if (modalPhaseHint) {
+
                 modalPhaseHint.textContent =
-                    "Select one or more reviewers, then assign the project for review.";
+                    actionMode === "finalDecision"
+                        ? "Select the final decision and send it directly to the student."
+                        : "Add a reviewer or send a final decision directly to the student.";
             }
+
 
             if (confirmBtn) {
-                confirmBtn.style.display = "none";
-            }
 
-            return;
+                confirmBtn.textContent =
+                    actionMode === "finalDecision"
+                        ? "Send Final Decision"
+                        : "Send for Review";
+
+
+                confirmBtn.style.display =
+                    "";
+            }
         }
 
-        // RevisionSubmitted = exactly two choices:
-        // Final Decision OR Add Reviewer/Reassign.
-        if (phase === "revisionSubmitted") {
+
+        // =====================================================
+        // REVISION SUBMITTED
+        // =====================================================
+
+        else if (
+            phase === "revisionSubmitted"
+        ) {
 
             if (modalPhaseHint) {
+
                 modalPhaseHint.textContent =
                     actionMode === "finalDecision"
                         ? "The student submitted a revision. You can send the final decision directly."
-                        : "The student submitted a revision. You can make the final decision or add reviewers again.";
+                        : "The student submitted a revision. You can assign a reviewer again or make the final decision directly.";
             }
+
 
             if (confirmBtn) {
-                if (actionMode === "finalDecision") {
-                    confirmBtn.textContent = "Send Final Decision";
-                    confirmBtn.style.display = "";
-                } else {
-                    confirmBtn.style.display = "none";
-                }
-            }
 
-            return;
+                if (
+                    actionMode ===
+                    "finalDecision"
+                ) {
+
+                    confirmBtn.textContent =
+                        "Send Final Decision";
+
+                } else {
+
+                    confirmBtn.textContent =
+                        pendingReviewerPicks.length > 0
+                            ? "Send for Review"
+                            : "Send Final Decision";
+                }
+
+
+                confirmBtn.style.display =
+                    "";
+            }
         }
 
-        // UnderReview = no admin action.
-        if (phase === "underReview") {
+
+        // =====================================================
+        // UNDER REVIEW
+        // =====================================================
+
+        else if (
+            phase === "underReview"
+        ) {
 
             if (modalPhaseHint) {
+
                 modalPhaseHint.textContent =
                     "This project is currently under review by staff.";
             }
 
-            if (confirmBtn) {
-                confirmBtn.style.display = "none";
-            }
 
-            return;
+            if (confirmBtn) {
+
+                confirmBtn.style.display =
+                    "none";
+            }
         }
 
-        // UnderDecision = Final Decision only.
-        if (phase === "underDecision") {
+
+        // =====================================================
+        // UNDER DECISION
+        // =====================================================
+
+        else if (
+            phase === "underDecision"
+        ) {
 
             if (modalPhaseHint) {
+
                 modalPhaseHint.textContent =
                     "Staff have finished reviewing this project. Select the final decision and send it to the student.";
             }
 
+
             if (confirmBtn) {
-                confirmBtn.textContent = "Send Final Decision";
-                confirmBtn.style.display = "";
+
+                confirmBtn.textContent =
+                    "Send Final Decision";
+
+
+                confirmBtn.style.display =
+                    "";
+            }
+        }
+
+
+        // =====================================================
+        // DONE
+        // =====================================================
+
+        else {
+
+            if (modalPhaseHint) {
+
+                modalPhaseHint.textContent =
+                    `This project has already received its final decision: ${formatStatusLabel(
+                        status
+                    )}.`;
             }
 
-            return;
-        }
 
-        // Done = no actions.
-        if (modalPhaseHint) {
-            modalPhaseHint.textContent =
-                `This project has already received its final decision: ${formatStatusLabel(status)}.`;
-        }
+            if (confirmBtn) {
 
-        if (confirmBtn) {
-            confirmBtn.style.display = "none";
+                confirmBtn.style.display =
+                    "none";
+            }
         }
     }
+
+
+    // =========================================================
+    // MAIN BUTTON - ADD REVIEWER
+    // =========================================================
 
     if (
         addReviewerActionBtn
@@ -1114,11 +1438,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 if (
-                    phase !== "pending"
+                    phase !== "pending" &&
+                    phase !== "revisionSubmitted"
                 ) {
 
                     alert(
-                        "Initial reviewer assignment is only available while the project is pending."
+                        "A reviewer can only be assigned when the project is pending or a revision has been submitted."
                     );
 
                     return;
@@ -1128,7 +1453,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 actionMode =
                     "assignReviewer";
 
+
                 pendingReviewerPicks = [];
+
 
                 renderDoctorsPicker();
 
@@ -1145,6 +1472,10 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
+
+    // =========================================================
+    // MAIN BUTTON - FINAL DECISION
+    // =========================================================
 
     if (
         finalDecisionActionBtn
@@ -1166,12 +1497,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 if (
+                    phase !== "pending" &&
                     phase !== "revisionSubmitted" &&
                     phase !== "underDecision"
                 ) {
 
                     alert(
-                        "Final Decision is only available after staff finish reviewing or after a student submits a revision."
+                        "Final Decision is not available while the project is under review."
                     );
 
                     return;
@@ -1181,11 +1513,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 actionMode =
                     "finalDecision";
 
-                pendingReviewerPicks = [];
 
-                if (addReviewerBtn) {
-                    addReviewerBtn.style.display = "none";
-                }
+                pendingReviewerPicks = [];
 
 
                 if (
@@ -1220,6 +1549,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // CLOSE STATUS MODAL
+    // =========================================================
+
     if (
         closeModalBtn
     ) {
@@ -1239,12 +1572,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 actionMode =
                     null;
 
+
                 pendingReviewerPicks =
                     [];
             }
         );
     }
 
+
+    // =========================================================
+    // OLD MODAL ADD REVIEWER
+    // =========================================================
 
     if (
         addReviewerBtn
@@ -1254,20 +1592,12 @@ document.addEventListener("DOMContentLoaded", function () {
             "click",
             function () {
 
-                if (
-                    !currentProject ||
-                    currentProject.status !==
-                    "RevisionSubmitted"
-                ) {
-                    return;
-                }
-
                 actionMode =
-                    "reassignReviewer";
+                    "modal";
 
-                pendingReviewerPicks = [];
 
                 renderDoctorsPicker();
+
 
                 if (
                     reviewerPickerModal
@@ -1281,6 +1611,10 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
+
+    // =========================================================
+    // CLOSE REVIEWER PICKER
+    // =========================================================
 
     if (
         closePickerBtn
@@ -1303,6 +1637,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // CLICK OUTSIDE MODALS
+    // =========================================================
+
     window.addEventListener(
         "click",
         function (event) {
@@ -1317,8 +1655,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     "active"
                 );
 
+
                 actionMode =
                     null;
+
 
                 pendingReviewerPicks =
                     [];
@@ -1339,11 +1679,19 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
 
+    // =========================================================
+    // LOAD STAFF MEMBERS
+    // =========================================================
+
     async function renderDoctorsPicker() {
 
-        if (!doctorsPickerList) {
+        if (
+            !doctorsPickerList
+        ) {
+
             return;
         }
+
 
         doctorsPickerList.innerHTML =
             `
@@ -1352,13 +1700,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 </p>
             `;
 
+
         let doctors = [];
+
 
         try {
 
             if (
-                typeof StaffStorage !== "undefined" &&
-                typeof StaffStorage.getAll === "function"
+                typeof StaffStorage !==
+                "undefined" &&
+                typeof StaffStorage.getAll ===
+                "function"
             ) {
 
                 doctors =
@@ -1376,22 +1728,33 @@ document.addEventListener("DOMContentLoaded", function () {
                 err
             );
 
+
             doctorsPickerList.innerHTML =
                 `
                     <p class="doctors-picker-empty">
                         Could not load staff members:
-                        ${escapeHtml(err.message)}
+                        ${escapeHtml(
+                            err.message
+                        )}
                     </p>
                 `;
+
 
             return;
         }
 
-        if (!Array.isArray(doctors)) {
+
+        if (
+            !Array.isArray(doctors)
+        ) {
+
             doctors = [];
         }
 
-        doctorsPickerList.innerHTML = "";
+
+        doctorsPickerList.innerHTML =
+            "";
+
 
         const availableDoctors =
             doctors.filter(
@@ -1399,13 +1762,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     return !pendingReviewerPicks.some(
                         picked =>
-                            String(picked.id) ===
-                            String(doctor.id)
+                            String(
+                                picked.id
+                            ) ===
+                            String(
+                                doctor.id
+                            )
                     );
                 }
             );
 
-        if (availableDoctors.length === 0) {
+
+        if (
+            availableDoctors.length === 0
+        ) {
 
             doctorsPickerList.innerHTML =
                 `
@@ -1414,167 +1784,198 @@ document.addEventListener("DOMContentLoaded", function () {
                     </p>
                 `;
 
-            updateReviewerPickerConfirmButton();
+
             return;
         }
+
 
         availableDoctors.forEach(
             doctor => {
 
                 const item =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 item.className =
                     "doctor-pick-item";
 
+
                 item.innerHTML =
                     `
                         <span>
-                            <i class="fa-solid fa-user-doctor"></i>
-                            ${escapeHtml(doctor.full_name)}
+                            <i
+                                class="fa-solid fa-user-doctor"
+                            ></i>
+
+                            ${escapeHtml(
+                                doctor.full_name
+                            )}
                         </span>
 
-                        <i class="fa-solid fa-plus-circle"></i>
+                        <i
+                            class="fa-solid fa-plus-circle"
+                        ></i>
                     `;
 
+
+                // IMPORTANT:
+                // This MUST be async because we use await below.
                 item.addEventListener(
                     "click",
-                    function () {
+                    async function () {
 
                         const alreadySelected =
                             pendingReviewerPicks.some(
                                 picked =>
-                                    String(picked.id) ===
-                                    String(doctor.id)
+                                    String(
+                                        picked.id
+                                    ) ===
+                                    String(
+                                        doctor.id
+                                    )
                             );
 
-                        if (alreadySelected) {
+
+                        if (
+                            alreadySelected
+                        ) {
+
                             return;
                         }
 
-                        // Select only. The API is NOT called here.
+
                         pendingReviewerPicks.push({
-                            id: doctor.id,
-                            full_name: doctor.full_name
+
+                            id:
+                                doctor.id,
+
+                            full_name:
+                                doctor.full_name
                         });
+
 
                         renderReviewersList();
 
-                        // Keep the picker open for multi-select.
-                        renderDoctorsPicker();
+
+                        // -------------------------------------------------
+                        // MAIN PROJECT DETAILS -> ADD REVIEWER
+                        // -------------------------------------------------
+
+                        if (
+                            actionMode ===
+                            "assignReviewer"
+                        ) {
+
+                            const selectedCount =
+                                pendingReviewerPicks.length;
+
+
+                            if (
+                                addReviewerActionBtn
+                            ) {
+
+                                addReviewerActionBtn.disabled =
+                                    true;
+                            }
+
+
+                            try {
+
+                                await sendProjectForReview();
+
+
+                                await loadProject();
+
+
+                                alert(
+                                    `Reviewer assigned successfully. ${selectedCount} reviewer(s) assigned.`
+                                );
+
+
+                            } catch (err) {
+
+                                console.error(
+                                    "DIRECT REVIEWER ASSIGNMENT ERROR:",
+                                    err
+                                );
+
+
+                                alert(
+                                    err.message ||
+                                    "Could not assign the reviewer."
+                                );
+
+
+                            } finally {
+
+                                if (
+                                    addReviewerActionBtn
+                                ) {
+
+                                    addReviewerActionBtn.disabled =
+                                        false;
+                                }
+
+
+                                actionMode =
+                                    null;
+                            }
+
+
+                            if (
+                                reviewerPickerModal
+                            ) {
+
+                                reviewerPickerModal.classList.remove(
+                                    "active"
+                                );
+                            }
+
+
+                            return;
+                        }
+
+
+                        // -------------------------------------------------
+                        // OLD MODAL WORKFLOW
+                        // -------------------------------------------------
+
+                        if (
+                            currentProject &&
+                            currentProject.status ===
+                            "RevisionSubmitted"
+                        ) {
+
+                            if (
+                                confirmBtn
+                            ) {
+
+                                confirmBtn.textContent =
+                                    "Send for Review";
+                            }
+                        }
+
+
+                        if (
+                            reviewerPickerModal
+                        ) {
+
+                            reviewerPickerModal.classList.remove(
+                                "active"
+                            );
+                        }
                     }
                 );
 
-                doctorsPickerList.appendChild(item);
+
+                doctorsPickerList.appendChild(
+                    item
+                );
             }
         );
-
-        updateReviewerPickerConfirmButton();
-    }
-
-
-    function updateReviewerPickerConfirmButton() {
-
-        if (!confirmReviewerSelectionBtn) {
-            return;
-        }
-
-        const count =
-            pendingReviewerPicks.length;
-
-        confirmReviewerSelectionBtn.disabled =
-            count === 0;
-
-        if (count === 0) {
-
-            confirmReviewerSelectionBtn.textContent =
-                "Select Reviewers";
-
-        } else {
-
-            confirmReviewerSelectionBtn.textContent =
-                actionMode === "reassignReviewer"
-                    ? `Reassign ${count} Reviewer${count > 1 ? "s" : ""}`
-                    : `Assign ${count} Reviewer${count > 1 ? "s" : ""}`;
-        }
-    }
-
-
-    if (confirmReviewerSelectionBtn) {
-
-        confirmReviewerSelectionBtn.addEventListener(
-            "click",
-            async function () {
-
-                if (
-                    !currentProject ||
-                    pendingReviewerPicks.length === 0
-                ) {
-
-                    alert(
-                        "Please select at least one reviewer."
-                    );
-
-                    return;
-                }
-
-                confirmReviewerSelectionBtn.disabled =
-                    true;
-
-                const wasReassign =
-                    actionMode === "reassignReviewer";
-
-                try {
-
-                    const selectedCount =
-                        pendingReviewerPicks.length;
-
-                    await sendProjectForReview();
-
-                    await loadProject();
-
-                    alert(
-                        wasReassign
-                            ? `The revised project has been reassigned to ${selectedCount} reviewer(s).`
-                            : `The project has been assigned to ${selectedCount} reviewer(s).`
-                    );
-
-                    if (reviewerPickerModal) {
-
-                        reviewerPickerModal.classList.remove(
-                            "active"
-                        );
-                    }
-
-                    actionMode = null;
-                    pendingReviewerPicks = [];
-
-                    renderModalState();
-
-                } catch (err) {
-
-                    console.error(
-                        "REVIEWER ASSIGNMENT ERROR:",
-                        err
-                    );
-
-                    alert(
-                        err.message ||
-                        "Could not assign reviewers."
-                    );
-
-                } finally {
-
-                    confirmReviewerSelectionBtn.disabled =
-                        false;
-
-                    updateReviewerPickerConfirmButton();
-                }
-            }
-        );
-    }
-
-    // =========================================================
+    }    // =========================================================
     // SEND PROJECT FOR REVIEW
     // =========================================================
 
@@ -1603,18 +2004,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 currentProject.status
             );
 
+        const firstAssignment = !currentProject.hasPreviousAssignment;
+
 
         console.log(
             "SENDING PROJECT FOR REVIEW:",
             {
-                projectId:
-                    currentProject.id,
-
-                staffIds:
-                    staffIds,
-
-                phase:
-                    phase
+                projectId: currentProject.id,
+                staffIds: staffIds,
+                phase: phase
             }
         );
 
@@ -1624,7 +2022,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // =====================================================
 
         if (
-            phase === "pending"
+            phase === "pending" && firstAssignment
         ) {
 
             await AdminApi.post(
@@ -1648,7 +2046,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // =====================================================
 
         if (
-            phase === "revisionSubmitted"
+            phase === "revisionSubmitted" && !firstAssignment
         ) {
 
             if (
@@ -1657,17 +2055,13 @@ document.addEventListener("DOMContentLoaded", function () {
             ) {
 
                 throw new Error(
-                    "AdminApi.put is not available."
+                    "AdminApi.put is not available. The reassignment endpoint must support PUT /assignments/:projectId."
                 );
             }
 
 
-            // IMPORTANT:
-            // This is now exactly the same endpoint
-            // used by Flutter.
-
             await AdminApi.put(
-                `/assignments/projects/${currentProject.id}`,
+                `/assignments/${currentProject.id}`,
                 {
                     staffIds:
                         staffIds
@@ -1711,6 +2105,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 : "";
 
 
+        // =====================================================
+        // VALIDATE DECISION
+        // =====================================================
+
         if (!decision) {
 
             throw new Error(
@@ -1718,6 +2116,18 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         }
 
+
+        // =====================================================
+        // COMMENTS
+        // =====================================================
+
+        /*
+         * For Accepted:
+         * comments are optional.
+         *
+         * For Rejected / MinorRevision / MajorRevision:
+         * comments are required.
+         */
 
         if (
             decision !== "Accepted" &&
@@ -1745,6 +2155,10 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
+        // =====================================================
+        // FINAL DECISION API
+        // =====================================================
+
         await AdminApi.post(
             "/reviews/final",
             {
@@ -1761,6 +2175,10 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
+
+    // =========================================================
+    // CONFIRM BUTTON
+    // =========================================================
 
     if (
         confirmBtn
@@ -1789,16 +2207,157 @@ document.addEventListener("DOMContentLoaded", function () {
                 // =================================================
                 // PENDING
                 // =================================================
-                // Initial assignment only. Final Decision is forbidden.
-                // =================================================
 
                 if (
                     phase === "pending"
                 ) {
 
-                    alert(
-                        "Please assign one or more reviewers using Add Reviewer."
-                    );
+                    /*
+                     * If admin opened Final Decision directly,
+                     * send final decision.
+                     */
+
+                    if (
+                        actionMode ===
+                        "finalDecision"
+                    ) {
+
+                        confirmBtn.disabled =
+                            true;
+
+
+                        try {
+
+                            await sendFinalDecision();
+
+
+                            const decision =
+                                finalDecisionSelect
+                                    ? finalDecisionSelect.value
+                                    : "";
+
+
+                            await loadProject();
+
+
+                            alert(
+                                `The final decision "${formatStatusLabel(
+                                    decision
+                                )}" has been sent to the student.`
+                            );
+
+
+                            if (
+                                statusModal
+                            ) {
+
+                                statusModal.classList.remove(
+                                    "active"
+                                );
+                            }
+
+
+                            actionMode =
+                                null;
+
+
+                        } catch (err) {
+
+                            console.error(
+                                "FINAL DECISION ERROR:",
+                                err
+                            );
+
+
+                            alert(
+                                err.message ||
+                                "Could not submit the final decision."
+                            );
+
+
+                        } finally {
+
+                            confirmBtn.disabled =
+                                false;
+                        }
+
+
+                        return;
+                    }
+
+
+                    // ---------------------------------------------
+                    // NORMAL FIRST REVIEW
+                    // ---------------------------------------------
+
+                    if (
+                        pendingReviewerPicks.length ===
+                        0
+                    ) {
+
+                        alert(
+                            "Please add at least one reviewer before sending this project for review."
+                        );
+
+                        return;
+                    }
+
+
+                    confirmBtn.disabled =
+                        true;
+
+
+                    try {
+
+                        const sentCount =
+                            pendingReviewerPicks.length;
+
+
+                        await sendProjectForReview();
+
+
+                        await loadProject();
+
+
+                        alert(
+                            `This project has been sent to ${sentCount} reviewer(s). Its status is now "Under Review."`
+                        );
+
+
+                        if (
+                            statusModal
+                        ) {
+
+                            statusModal.classList.remove(
+                                "active"
+                            );
+                        }
+
+
+                        actionMode =
+                            null;
+
+
+                    } catch (err) {
+
+                        console.error(
+                            "ASSIGNMENT ERROR:",
+                            err
+                        );
+
+
+                        alert(
+                            err.message ||
+                            "Could not send this project for review."
+                        );
+
+
+                    } finally {
+
+                        confirmBtn.disabled =
+                            false;
+                    }
+
 
                     return;
                 }
@@ -1807,39 +2366,191 @@ document.addEventListener("DOMContentLoaded", function () {
                 // =================================================
                 // REVISION SUBMITTED
                 // =================================================
-                // Admin has two choices:
-                // 1) Final Decision -> handled by this Confirm button
-                // 2) Add Reviewer -> handled by the picker/reassign button
-                // =================================================
 
                 if (
-                    phase === "revisionSubmitted"
+                    phase ===
+                    "revisionSubmitted"
                 ) {
 
+                    /*
+                     * IMPORTANT:
+                     *
+                     * Admin now has TWO independent choices:
+                     *
+                     * 1. Add Reviewer
+                     * 2. Final Decision
+                     *
+                     * If reviewer was selected:
+                     *      assign reviewer again.
+                     *
+                     * If Final Decision was opened:
+                     *      send final decision directly.
+                     */
+
+
                     if (
-                        actionMode !==
+                        actionMode ===
                         "finalDecision"
                     ) {
 
-                        alert(
-                            "Choose Final Decision or use Add Reviewer to reassign reviewers."
-                        );
+                        confirmBtn.disabled =
+                            true;
+
+
+                        try {
+
+                            await sendFinalDecision();
+
+
+                            const decision =
+                                finalDecisionSelect
+                                    ? finalDecisionSelect.value
+                                    : "";
+
+
+                            await loadProject();
+
+
+                            alert(
+                                `The final decision "${formatStatusLabel(
+                                    decision
+                                )}" has been sent to the student.`
+                            );
+
+
+                            if (
+                                statusModal
+                            ) {
+
+                                statusModal.classList.remove(
+                                    "active"
+                                );
+                            }
+
+
+                            actionMode =
+                                null;
+
+
+                        } catch (err) {
+
+                            console.error(
+                                "REVISION FINAL DECISION ERROR:",
+                                err
+                            );
+
+
+                            alert(
+                                err.message ||
+                                "Could not submit the final decision."
+                            );
+
+
+                        } finally {
+
+                            confirmBtn.disabled =
+                                false;
+                        }
+
 
                         return;
                     }
 
-                    confirmBtn.disabled = true;
+
+                    // ---------------------------------------------
+                    // RE-ASSIGN REVIEWER
+                    // ---------------------------------------------
+
+                    if (
+                        pendingReviewerPicks.length >
+                        0
+                    ) {
+
+                        confirmBtn.disabled =
+                            true;
+
+
+                        try {
+
+                            const sentCount =
+                                pendingReviewerPicks.length;
+
+
+                            await sendProjectForReview();
+
+
+                            await loadProject();
+
+
+                            alert(
+                                `The revised project has been sent to ${sentCount} reviewer(s) for review.`
+                            );
+
+
+                            if (
+                                statusModal
+                            ) {
+
+                                statusModal.classList.remove(
+                                    "active"
+                                );
+                            }
+
+
+                            actionMode =
+                                null;
+
+
+                        } catch (err) {
+
+                            console.error(
+                                "REVISION RE-ASSIGNMENT ERROR:",
+                                err
+                            );
+
+
+                            alert(
+                                err.message ||
+                                "Could not assign reviewers to the revised project."
+                            );
+
+
+                        } finally {
+
+                            confirmBtn.disabled =
+                                false;
+                        }
+
+
+                        return;
+                    }
+
+
+                    /*
+                     * This should normally not happen because
+                     * Final Decision has its own button.
+                     *
+                     * But we keep this fallback so the old modal
+                     * workflow still works.
+                     */
+
+                    confirmBtn.disabled =
+                        true;
+
 
                     try {
 
                         await sendFinalDecision();
+
 
                         const decision =
                             finalDecisionSelect
                                 ? finalDecisionSelect.value
                                 : "";
 
+
                         await loadProject();
+
 
                         alert(
                             `The final decision "${formatStatusLabel(
@@ -1847,28 +2558,41 @@ document.addEventListener("DOMContentLoaded", function () {
                             )}" has been sent to the student.`
                         );
 
-                        if (statusModal) {
-                            statusModal.classList.remove("active");
+
+                        if (
+                            statusModal
+                        ) {
+
+                            statusModal.classList.remove(
+                                "active"
+                            );
                         }
 
-                        actionMode = null;
+
+                        actionMode =
+                            null;
+
 
                     } catch (err) {
 
                         console.error(
-                            "REVISION FINAL DECISION ERROR:",
+                            "REVISION FALLBACK FINAL DECISION ERROR:",
                             err
                         );
+
 
                         alert(
                             err.message ||
                             "Could not submit the final decision."
                         );
 
+
                     } finally {
 
-                        confirmBtn.disabled = false;
+                        confirmBtn.disabled =
+                            false;
                     }
+
 
                     return;
                 }
@@ -1886,6 +2610,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     alert(
                         "This project is currently under review by staff."
                     );
+
 
                     return;
                 }
@@ -1975,6 +2700,10 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
+
+    // =========================================================
+    // RESET MODAL WHEN OPENED
+    // =========================================================
 
     if (
         statusModal
