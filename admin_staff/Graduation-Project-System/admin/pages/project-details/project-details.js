@@ -2100,11 +2100,12 @@ document.addEventListener("DOMContentLoaded", function () {
         // =====================================================
         // FIRST ASSIGNMENT
         // =====================================================
+        // Pending + no previous assignment = POST
 
         if (
-            phase === "pending" && firstAssignment
+            phase === "pending" &&
+            firstAssignment
         ) {
-
             await AdminApi.post(
                 "/assignments",
                 {
@@ -2116,29 +2117,32 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             );
 
-
             return;
         }
 
 
         // =====================================================
-        // RE-ASSIGN AFTER STUDENT REVISION
+        // RE-ASSIGNMENT
         // =====================================================
+        // If the project already has an assignment, use PUT.
+        // This covers pending projects that already had reviewers
+        // and RevisionSubmitted projects after revision.
 
-        if (            
-            phase === "revisionSubmitted" && !firstAssignment
+        if (
+            (
+                phase === "pending" ||
+                phase === "revisionSubmitted"
+            ) &&
+            !firstAssignment
         ) {
-
             if (
                 typeof AdminApi.put !==
                 "function"
             ) {
-
                 throw new Error(
                     "AdminApi.put is not available. The reassignment endpoint must support PUT /assignments/:projectId."
                 );
             }
-
 
             await AdminApi.put(
                 `/assignments/${currentProject.id}`,
@@ -2148,18 +2152,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             );
 
-
             return;
         }
 
 
         throw new Error(
-            "Project cannot be sent for review in its current status."
+            `Project cannot be sent for review in its current status. Current status: ${currentProject.status}`
         );
     }
 
 
-    // =========================================================
     // SEND FINAL DECISION
     // =========================================================
 
