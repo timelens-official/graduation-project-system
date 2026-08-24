@@ -159,14 +159,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const dateStr = project.created_at
       ? new Date(project.created_at)
-          .toLocaleDateString(
-            'en-US',
-            {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            }
-          )
+        .toLocaleDateString(
+          'en-US',
+          {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }
+        )
       : '-';
 
     dateElement.textContent = dateStr;
@@ -175,7 +175,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
   // =========================================================
-  // 9. STATUS
+  // 9. CURRENT PROJECT STATUS
+  //
+  // IMPORTANT:
+  // project.status is ALWAYS the current status
+  // of the current review cycle.
+  //
+  // Examples:
+  // Pending
+  // UnderReview
+  // UnderDecision
+  // Rejected
+  // MinorRevision
+  // MajorRevision
+  // Accepted
   // =========================================================
 
   const statusBadge =
@@ -200,135 +213,79 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
   // =========================================================
-  // 10. DOCTOR'S COMMENT
+  // 10. ADMIN FINAL COMMENT
   //
-  // The backend already returns:
+  // DO NOT use project.reviews here.
   //
-  // project.reviews = [
-  //   {
-  //     staff_name,
-  //     comments,
-  //     reviewed_at,
-  //     decision
-  //   }
-  // ]
+  // project.reviews contains Staff reviews.
   //
-  // We only display the latest review if it
-  // actually contains a comment.
+  // The snapshot contains the LAST Admin final decision.
+  // We only display its comment here.
+  //
+  // The Admin decision itself is represented by
+  // project.status when it is the current final status.
+  //
+  // After the student resubmits:
+  //
+  // project.status = Pending
+  //
+  // while the previous Admin comment can remain visible
+  // so the student knows what needs to be changed.
   // =========================================================
 
-  const doctorReviewSection =
+  const adminFinalSection =
     document.getElementById(
-      'doctor-review-section'
+      'admin-final-decision-section'
     );
 
-  const doctorComment =
+  const adminFinalComment =
     document.getElementById(
-      'doctor-comment'
-    );
-
-  const doctorReviewer =
-    document.getElementById(
-      'doctor-reviewer'
-    );
-
-  const doctorReviewDate =
-    document.getElementById(
-      'doctor-review-date'
+      'admin-final-comment'
     );
 
 
-  // Make sure the section is hidden initially
+  // Hide initially
 
-  if (doctorReviewSection) {
-    doctorReviewSection.classList.add('hidden');
+  if (adminFinalSection) {
+    adminFinalSection.classList.add('hidden');
   }
 
 
-  // Get reviews safely
+  // =========================================================
+  // 11. GET LAST ADMIN FINAL COMMENT
+  // =========================================================
 
-  const reviews =
-    Array.isArray(project.reviews)
-      ? project.reviews
-      : [];
-
-
-  // Get latest review
-
-  const latestReview =
-    reviews.length > 0
-      ? reviews[reviews.length - 1]
-      : null;
+  const finalDecision =
+    project.finalDecision || null;
 
 
-  // Check if there is an actual comment
-
-  const comment =
-    latestReview &&
-    typeof latestReview.comments === 'string'
-      ? latestReview.comments.trim()
+  const finalCommentValue =
+    finalDecision &&
+      typeof finalDecision.admin_comments === 'string'
+      ? finalDecision.admin_comments.trim()
       : '';
 
 
   // =========================================================
-  // 11. SHOW COMMENT INSIDE SAME CARD
+  // 12. SHOW ADMIN FINAL COMMENT
   // =========================================================
 
-  if (comment) {
+  if (finalCommentValue) {
 
-    // Show the review section
-    if (doctorReviewSection) {
-      doctorReviewSection.classList.remove('hidden');
+    if (adminFinalSection) {
+      adminFinalSection.classList.remove('hidden');
     }
 
-
-    // Doctor comment
-
-    if (doctorComment) {
-
-      doctorComment.textContent =
-        comment;
-
-    }
-
-
-    // Doctor name
-
-    if (doctorReviewer) {
-
-      doctorReviewer.textContent =
-        latestReview.staff_name ||
-        '-';
-
-    }
-
-
-    // Review date
-
-    if (
-      doctorReviewDate &&
-      latestReview.reviewed_at
-    ) {
-
-      doctorReviewDate.textContent =
-        new Date(
-          latestReview.reviewed_at
-        ).toLocaleDateString(
-          'en-US',
-          {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          }
-        );
-
+    if (adminFinalComment) {
+      adminFinalComment.textContent =
+        finalCommentValue;
     }
 
   }
 
 
   // =========================================================
-  // 12. EDIT PROJECT
+  // 13. EDIT PROJECT
   // =========================================================
 
   if (
