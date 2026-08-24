@@ -2045,8 +2045,8 @@ document.addEventListener("DOMContentLoaded", function () {
         // RE-ASSIGN AFTER STUDENT REVISION
         // =====================================================
 
-        if (
-            phase === "revisionSubmitted" && !firstAssignment
+        if (            
+            phase === "Pending" && !firstAssignment
         ) {
 
             if (
