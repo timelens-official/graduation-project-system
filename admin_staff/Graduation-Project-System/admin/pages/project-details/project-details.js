@@ -48,6 +48,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const confirmBtn =
         document.getElementById("confirmBtn");
 
+    const confirmReviewerSelectionBtn =
+        document.getElementById(
+            "confirmReviewerSelectionBtn"
+        );
+
     const projectStatusBadge =
         document.getElementById("projectStatusBadge");
 
@@ -1254,13 +1259,38 @@ document.addEventListener("DOMContentLoaded", function () {
         // =====================================================
         // MODAL ADD REVIEWER
         // =====================================================
+        // The Add Reviewer control is visible ONLY when the
+        // Add Reviewer workflow is opened.
+        // It must NOT appear inside Final Decision.
+
+        const reviewerFormGroup =
+            addReviewerBtn
+                ? addReviewerBtn.closest(".form-group")
+                : null;
+
+        if (reviewerFormGroup) {
+
+            reviewerFormGroup.style.display =
+                (
+                    actionMode !== "finalDecision" &&
+                    (
+                        phase === "pending" ||
+                        phase === "revisionSubmitted"
+                    )
+                )
+                    ? ""
+                    : "none";
+        }
 
         if (addReviewerBtn) {
 
             addReviewerBtn.style.display =
                 (
-                    phase === "pending" ||
-                    phase === "revisionSubmitted"
+                    actionMode !== "finalDecision" &&
+                    (
+                        phase === "pending" ||
+                        phase === "revisionSubmitted"
+                    )
                 )
                     ? ""
                     : "none";
@@ -1514,6 +1544,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     "finalDecision";
 
 
+                // Final Decision must never show the Add Reviewer
+                // section or any temporary reviewer selection.
                 pendingReviewerPicks = [];
 
 
@@ -1613,6 +1645,148 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
+    // CONFIRM REVIEWER SELECTION
+    // =========================================================
+
+    if (confirmReviewerSelectionBtn) {
+
+        confirmReviewerSelectionBtn.addEventListener(
+            "click",
+            async function () {
+
+                if (!currentProject) {
+
+                    alert(
+                        "Project data is not loaded."
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    pendingReviewerPicks.length ===
+                    0
+                ) {
+
+                    alert(
+                        "Please select at least one reviewer."
+                    );
+
+                    return;
+                }
+
+
+                // ---------------------------------------------
+                // MAIN PROJECT DETAILS -> ADD REVIEWER
+                // ---------------------------------------------
+
+                if (
+                    actionMode ===
+                    "assignReviewer"
+                ) {
+
+                    const selectedCount =
+                        pendingReviewerPicks.length;
+
+
+                    confirmReviewerSelectionBtn.disabled =
+                        true;
+
+
+                    try {
+
+                        await sendProjectForReview();
+
+                        await loadProject();
+
+
+                        alert(
+                            `Reviewer(s) assigned successfully. ${selectedCount} reviewer(s) assigned.`
+                        );
+
+
+                        pendingReviewerPicks = [];
+
+                        actionMode = null;
+
+
+                        if (reviewerPickerModal) {
+
+                            reviewerPickerModal.classList.remove(
+                                "active"
+                            );
+                        }
+
+                    } catch (err) {
+
+                        console.error(
+                            "DIRECT REVIEWER ASSIGNMENT ERROR:",
+                            err
+                        );
+
+
+                        alert(
+                            err.message ||
+                            "Could not assign the reviewers."
+                        );
+
+                    } finally {
+
+                        confirmReviewerSelectionBtn.disabled =
+                            false;
+                    }
+
+
+                    return;
+                }
+
+
+                // ---------------------------------------------
+                // OLD MODAL -> ADD REVIEWER
+                // ---------------------------------------------
+                // Keep the selected reviewers in the status modal.
+                // The normal "Send for Review" button will submit them.
+
+                if (
+                    actionMode ===
+                    "modal"
+                ) {
+
+                    if (reviewerPickerModal) {
+
+                        reviewerPickerModal.classList.remove(
+                            "active"
+                        );
+                    }
+
+
+                    if (confirmBtn) {
+
+                        confirmBtn.textContent =
+                            "Send for Review";
+
+                        confirmBtn.style.display =
+                            "";
+                    }
+
+
+                    renderModalState();
+
+                    return;
+                }
+
+
+                // Final Decision should never open the reviewer picker.
+                alert(
+                    "Reviewer selection is not available in Final Decision."
+                );
+            }
+        );
+    }
+
+
+    // =========================================================
     // CLOSE REVIEWER PICKER
     // =========================================================
 
@@ -1685,10 +1859,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function renderDoctorsPicker() {
 
-        if (
-            !doctorsPickerList
-        ) {
-
+        if (!doctorsPickerList) {
             return;
         }
 
@@ -1707,10 +1878,8 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             if (
-                typeof StaffStorage !==
-                "undefined" &&
-                typeof StaffStorage.getAll ===
-                "function"
+                typeof StaffStorage !== "undefined" &&
+                typeof StaffStorage.getAll === "function"
             ) {
 
                 doctors =
@@ -1733,9 +1902,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 `
                     <p class="doctors-picker-empty">
                         Could not load staff members:
-                        ${escapeHtml(
-                            err.message
-                        )}
+                        ${escapeHtml(err.message)}
                     </p>
                 `;
 
@@ -1744,38 +1911,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        if (
-            !Array.isArray(doctors)
-        ) {
-
+        if (!Array.isArray(doctors)) {
             doctors = [];
         }
 
 
-        doctorsPickerList.innerHTML =
-            "";
+        doctorsPickerList.innerHTML = "";
 
 
-        const availableDoctors =
-            doctors.filter(
-                doctor => {
-
-                    return !pendingReviewerPicks.some(
-                        picked =>
-                            String(
-                                picked.id
-                            ) ===
-                            String(
-                                doctor.id
-                            )
-                    );
-                }
-            );
-
-
-        if (
-            availableDoctors.length === 0
-        ) {
+        if (doctors.length === 0) {
 
             doctorsPickerList.innerHTML =
                 `
@@ -1784,27 +1928,50 @@ document.addEventListener("DOMContentLoaded", function () {
                     </p>
                 `;
 
-
             return;
         }
 
 
-        availableDoctors.forEach(
+        // ---------------------------------------------------------
+        // MULTI SELECT
+        // ---------------------------------------------------------
+        // Do NOT send the request when a reviewer is clicked.
+        // The user can select several reviewers first, then press
+        // "Assign Selected Reviewers".
+
+        doctors.forEach(
             doctor => {
 
-                const item =
-                    document.createElement(
-                        "div"
+                const isSelected =
+                    pendingReviewerPicks.some(
+                        picked =>
+                            String(picked.id) ===
+                            String(doctor.id)
                     );
+
+
+                const item =
+                    document.createElement("div");
 
 
                 item.className =
                     "doctor-pick-item";
 
 
+                item.style.cursor = "pointer";
+
+
+                if (isSelected) {
+
+                    item.style.background = "#EFF6FF";
+                    item.style.borderColor = "#2563EB";
+                    item.style.color = "#2563EB";
+                }
+
+
                 item.innerHTML =
                     `
-                        <span>
+                        <span style="display:flex;align-items:center;gap:10px;">
                             <i
                                 class="fa-solid fa-user-doctor"
                             ></i>
@@ -1815,167 +1982,80 @@ document.addEventListener("DOMContentLoaded", function () {
                         </span>
 
                         <i
-                            class="fa-solid fa-plus-circle"
+                            class="fa-solid ${
+                                isSelected
+                                    ? "fa-circle-check"
+                                    : "fa-circle-plus"
+                            }"
+                            style="${
+                                isSelected
+                                    ? "color:#2563EB;"
+                                    : ""
+                            }"
                         ></i>
                     `;
 
 
-                // IMPORTANT:
-                // This MUST be async because we use await below.
                 item.addEventListener(
                     "click",
-                    async function () {
+                    function () {
 
-                        const alreadySelected =
-                            pendingReviewerPicks.some(
+                        const selectedIndex =
+                            pendingReviewerPicks.findIndex(
                                 picked =>
-                                    String(
-                                        picked.id
-                                    ) ===
-                                    String(
-                                        doctor.id
-                                    )
+                                    String(picked.id) ===
+                                    String(doctor.id)
                             );
 
 
-                        if (
-                            alreadySelected
-                        ) {
+                        // Already selected -> remove it.
+                        if (selectedIndex !== -1) {
 
-                            return;
+                            pendingReviewerPicks.splice(
+                                selectedIndex,
+                                1
+                            );
+
+                        }
+
+                        // Not selected -> add it.
+                        else {
+
+                            pendingReviewerPicks.push({
+                                id:
+                                    doctor.id,
+
+                                full_name:
+                                    doctor.full_name
+                            });
                         }
 
 
-                        pendingReviewerPicks.push({
-
-                            id:
-                                doctor.id,
-
-                            full_name:
-                                doctor.full_name
-                        });
-
-
+                        // Re-render both the selected list and
+                        // picker so the UI always reflects the state.
                         renderReviewersList();
-
-
-                        // -------------------------------------------------
-                        // MAIN PROJECT DETAILS -> ADD REVIEWER
-                        // -------------------------------------------------
-
-                        if (
-                            actionMode ===
-                            "assignReviewer"
-                        ) {
-
-                            const selectedCount =
-                                pendingReviewerPicks.length;
-
-
-                            if (
-                                addReviewerActionBtn
-                            ) {
-
-                                addReviewerActionBtn.disabled =
-                                    true;
-                            }
-
-
-                            try {
-
-                                await sendProjectForReview();
-
-
-                                await loadProject();
-
-
-                                alert(
-                                    `Reviewer assigned successfully. ${selectedCount} reviewer(s) assigned.`
-                                );
-
-
-                            } catch (err) {
-
-                                console.error(
-                                    "DIRECT REVIEWER ASSIGNMENT ERROR:",
-                                    err
-                                );
-
-
-                                alert(
-                                    err.message ||
-                                    "Could not assign the reviewer."
-                                );
-
-
-                            } finally {
-
-                                if (
-                                    addReviewerActionBtn
-                                ) {
-
-                                    addReviewerActionBtn.disabled =
-                                        false;
-                                }
-
-
-                                actionMode =
-                                    null;
-                            }
-
-
-                            if (
-                                reviewerPickerModal
-                            ) {
-
-                                reviewerPickerModal.classList.remove(
-                                    "active"
-                                );
-                            }
-
-
-                            return;
-                        }
-
-
-                        // -------------------------------------------------
-                        // OLD MODAL WORKFLOW
-                        // -------------------------------------------------
-
-                        if (
-                            currentProject &&
-                            currentProject.status ===
-                            "RevisionSubmitted"
-                        ) {
-
-                            if (
-                                confirmBtn
-                            ) {
-
-                                confirmBtn.textContent =
-                                    "Send for Review";
-                            }
-                        }
-
-
-                        if (
-                            reviewerPickerModal
-                        ) {
-
-                            reviewerPickerModal.classList.remove(
-                                "active"
-                            );
-                        }
+                        renderDoctorsPicker();
                     }
                 );
 
 
-                doctorsPickerList.appendChild(
-                    item
-                );
+                doctorsPickerList.appendChild(item);
             }
         );
-    }    // =========================================================
+
+
+        // ---------------------------------------------------------
+        // CONFIRM BUTTON STATE
+        // ---------------------------------------------------------
+
+        if (confirmReviewerSelectionBtn) {
+
+            confirmReviewerSelectionBtn.disabled =
+                pendingReviewerPicks.length === 0;
+        }
+    }
+
+    // =========================================================
     // SEND PROJECT FOR REVIEW
     // =========================================================
 
@@ -2046,7 +2126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // =====================================================
 
         if (            
-            phase === "Pending" && !firstAssignment
+            phase === "revisionSubmitted" && !firstAssignment
         ) {
 
             if (
