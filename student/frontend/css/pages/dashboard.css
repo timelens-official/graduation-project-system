@@ -97,7 +97,9 @@
 }
 
 
-/* Label */
+/* =========================================================
+   LABEL
+   ========================================================= */
 
 .project-info-label {
   color: var(--text-secondary);
@@ -110,7 +112,9 @@
 }
 
 
-/* Value */
+/* =========================================================
+   VALUE
+   ========================================================= */
 
 .project-info-value {
   color: var(--text);
@@ -147,11 +151,10 @@
 
 
 /* =========================================================
-   DOCTOR REVIEW
-   INSIDE SAME PROJECT CARD
+   ADMIN FINAL DECISION
    ========================================================= */
 
-#doctor-review-section {
+#admin-final-decision-section {
   width: 100%;
 
   margin: 4px 0 0;
@@ -164,14 +167,14 @@
 
 /* Hidden */
 
-#doctor-review-section.hidden {
+#admin-final-decision-section.hidden {
   display: none;
 }
 
 
-/* Doctor comment */
+/* Admin final comment */
 
-#doctor-comment {
+#admin-final-comment {
   display: block;
 
   width: 100%;
@@ -189,48 +192,6 @@
   line-height: 1.7;
 
   white-space: pre-wrap;
-
-  overflow-wrap: anywhere;
-
-  word-break: break-word;
-}
-
-
-/* Doctor name */
-
-#doctor-reviewer {
-  display: block;
-
-  max-width: 100%;
-
-  color: var(--text);
-
-  font-weight: 700;
-
-  font-size: 15px;
-
-  line-height: 1.6;
-
-  overflow-wrap: anywhere;
-
-  word-break: break-word;
-}
-
-
-/* Review date */
-
-#doctor-review-date {
-  display: block;
-
-  max-width: 100%;
-
-  color: var(--text);
-
-  font-weight: 700;
-
-  font-size: 15px;
-
-  line-height: 1.6;
 
   overflow-wrap: anywhere;
 
@@ -297,7 +258,25 @@
    ========================================================= */
 
 .empty-state {
+  width: 100%;
+
   max-width: 480px;
+
+  min-height: calc(100vh - 180px);
+
+  margin: 0 auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+
+  box-sizing: border-box;
 }
 
 
@@ -351,6 +330,27 @@
     width: 100%;
 
     justify-content: center;
+  }
+
+
+  /* =======================================================
+     EMPTY STATE - MOBILE
+     ======================================================= */
+
+  .empty-state {
+    width: 100%;
+
+    max-width: 100%;
+
+    min-height: calc(100vh - 140px);
+
+    margin: 0 auto;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
   }
 
 }
