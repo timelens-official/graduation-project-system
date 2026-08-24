@@ -752,6 +752,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                                 renderReviewersList();
+
+
+                                // Update button after removing reviewer
+                                if (
+                                    currentProject &&
+                                    currentProject.status ===
+                                    "RevisionSubmitted"
+                                ) {
+
+                                    if (confirmBtn) {
+
+                                        confirmBtn.textContent =
+                                            pendingReviewerPicks.length > 0
+                                                ? "Send for Review"
+                                                : "Send Final Decision";
+                                    }
+                                }
                             }
                         );
                     }
@@ -1048,10 +1065,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         // =====================================================
-        // FINAL DECISION
+        // FINAL DECISION VISIBILITY
         // =====================================================
 
         if (finalDecisionRow) {
+
+            /*
+             * Final Decision is:
+             *
+             * 1. Hidden on first Pending submission
+             * 2. Hidden while UnderReview
+             * 3. Visible on UnderDecision
+             * 4. Visible on RevisionSubmitted
+             *
+             * This is exactly the requested workflow.
+             */
 
             finalDecisionRow.classList.toggle(
                 "hidden",
@@ -1062,10 +1090,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         // =====================================================
-        // ADD REVIEWER
+        // ADD REVIEWER VISIBILITY
         // =====================================================
 
         if (addReviewerBtn) {
+
+            /*
+             * Admin can add reviewers:
+             *
+             * - First time: Pending
+             * - After student revision: RevisionSubmitted
+             *
+             * But NOT while the project is already under review.
+             */
 
             addReviewerBtn.style.display =
                 (
@@ -1076,6 +1113,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     : "none";
         }
 
+
+        // =====================================================
+        // CLEAR COMMENT
+        // =====================================================
 
         if (newCommentInput) {
 
@@ -1118,18 +1159,22 @@ document.addEventListener("DOMContentLoaded", function () {
             if (modalPhaseHint) {
 
                 modalPhaseHint.textContent =
-                    "The student has submitted the revised project. You can assign new reviewers or make a final decision directly.";
+                    "The student has submitted a revised project. You can either make a final decision directly or add a reviewer to review the new version.";
             }
 
 
             if (confirmBtn) {
 
                 /*
-                 * If the admin already selected reviewers,
-                 * the button will act as "Send for Review".
+                 * UI LOGIC:
                  *
-                 * Otherwise it will act as "Send Final Decision".
+                 * No reviewer selected:
+                 *      Send Final Decision
+                 *
+                 * Reviewer selected:
+                 *      Send for Review
                  */
+
                 confirmBtn.textContent =
                     pendingReviewerPicks.length > 0
                         ? "Send for Review"
@@ -1140,10 +1185,10 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
-            if (finalDecisionSelect) {
-
-                finalDecisionSelect.value = "";
-            }
+            /*
+             * Don't force a decision here.
+             * Admin can choose one from the dropdown.
+             */
         }
 
 
@@ -1158,7 +1203,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (modalPhaseHint) {
 
                 modalPhaseHint.textContent =
-                    "This project is currently under review by staff. Reviewers can't be changed once sent.";
+                    "This project is currently under review by staff.";
             }
 
 
@@ -1198,10 +1243,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (finalDecisionSelect) {
 
                 finalDecisionSelect.value =
-                    (
-                        currentProject.finalDecision &&
-                        currentProject.finalDecision.admin_decision
-                    ) || "";
+                    "";
             }
         }
 
@@ -1460,6 +1502,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     "click",
                     function () {
 
+                        /*
+                         * Don't add duplicate reviewer
+                         */
+
+                        const alreadySelected =
+                            pendingReviewerPicks.some(
+                                picked =>
+                                    String(picked.id) ===
+                                    String(doctor.id)
+                            );
+
+
+                        if (alreadySelected) {
+
+                            return;
+                        }
+
+
                         pendingReviewerPicks.push({
                             id: doctor.id,
                             full_name:
@@ -1471,10 +1531,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                         /*
-                         * RevisionSubmitted:
-                         * after selecting a reviewer,
-                         * change the button immediately.
+                         * IMPORTANT:
+                         *
+                         * RevisionSubmitted + reviewer selected
+                         * => Send for Review
+                         *
+                         * RevisionSubmitted + no reviewer
+                         * => Send Final Decision
                          */
+
                         if (
                             currentProject &&
                             currentProject.status ===
@@ -1539,10 +1604,10 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        /*
-         * First submission:
-         * Pending -> POST /assignments
-         */
+        // =====================================================
+        // FIRST TIME ASSIGNMENT
+        // =====================================================
+
         if (phase === "pending") {
 
             await AdminApi.post(
@@ -1560,17 +1625,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        /*
-         * Revision submission:
-         * RevisionSubmitted -> update existing assignments
-         *
-         * IMPORTANT:
-         * This uses the updateAssignment backend function
-         * you showed me.
-         *
-         * Expected backend route:
-         * PUT /assignments/:projectId
-         */
+        // =====================================================
+        // RE-ASSIGN AFTER STUDENT REVISION
+        // =====================================================
+
         if (
             phase === "revisionSubmitted"
         ) {
@@ -1604,7 +1662,61 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // SEND FOR REVIEW / FINAL DECISION
+    // SEND FINAL DECISION
+    // =========================================================
+
+    async function sendFinalDecision() {
+
+        const decision =
+            finalDecisionSelect
+                ? finalDecisionSelect.value
+                : "";
+
+
+        const commentText =
+            newCommentInput
+                ? newCommentInput.value.trim()
+                : "";
+
+
+        if (!decision) {
+
+            throw new Error(
+                "Please select a final decision before sending."
+            );
+        }
+
+
+        if (
+            decision !== "Accepted" &&
+            !commentText
+        ) {
+
+            throw new Error(
+                "Comments are required unless the decision is Accepted."
+            );
+        }
+
+
+        await AdminApi.post(
+            "/reviews/final",
+            {
+                projectId:
+                    currentProject.id,
+
+                decision:
+                    decision,
+
+                comments:
+                    commentText ||
+                    undefined
+            }
+        );
+    }
+
+
+    // =========================================================
+    // CONFIRM BUTTON
     // =========================================================
 
     if (confirmBtn) {
@@ -1619,53 +1731,105 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
 
 
-                const commentText =
-                    newCommentInput
-                        ? newCommentInput.value.trim()
-                        : "";
-
-
                 // =================================================
-                // SEND PROJECT TO STAFF
+                // FIRST TIME
+                // Pending
                 // =================================================
 
                 if (
-                    phase === "pending" ||
+                    phase === "pending"
+                ) {
+
+                    if (
+                        pendingReviewerPicks.length === 0
+                    ) {
+
+                        alert(
+                            "Please add at least one reviewer before sending this project for review."
+                        );
+
+                        return;
+                    }
+
+
+                    confirmBtn.disabled =
+                        true;
+
+
+                    try {
+
+                        await sendProjectForReview();
+
+
+                        const sentCount =
+                            pendingReviewerPicks.length;
+
+
+                        await loadProject();
+
+
+                        alert(
+                            `This project has been sent to ${sentCount} reviewer(s). Its status is now "Under Review."`
+                        );
+
+
+                        if (statusModal) {
+
+                            statusModal.classList.remove(
+                                "active"
+                            );
+                        }
+
+
+                    } catch (err) {
+
+                        console.error(
+                            "ASSIGNMENT ERROR:",
+                            err
+                        );
+
+
+                        alert(
+                            err.message ||
+                            "Could not send this project for review."
+                        );
+
+
+                    } finally {
+
+                        confirmBtn.disabled =
+                            false;
+                    }
+
+
+                    return;
+                }
+
+
+                // =================================================
+                // REVISION SUBMITTED
+                // =================================================
+
+                if (
                     phase === "revisionSubmitted"
                 ) {
 
                     /*
-                     * If the admin selected reviewers,
-                     * send the project for review.
+                     * THIS IS THE IMPORTANT UI LOGIC.
                      *
-                     * If no reviewer was selected and the project
-                     * is RevisionSubmitted, allow direct final decision.
+                     * Reviewer selected:
+                     *      -> Assign Reviewer
+                     *
+                     * No Reviewer selected:
+                     *      -> Final Decision
                      */
 
                     if (
-                        phase === "revisionSubmitted" &&
-                        pendingReviewerPicks.length === 0
+                        pendingReviewerPicks.length > 0
                     ) {
 
-                        // Continue below to final decision
-                        // instead of returning.
-                    }
-
-                    else {
-
-                        if (
-                            pendingReviewerPicks.length === 0
-                        ) {
-
-                            alert(
-                                "Please add at least one reviewer before sending this project for review."
-                            );
-
-                            return;
-                        }
-
-
-                        confirmBtn.disabled = true;
+                        confirmBtn.disabled =
+                            true;
 
 
                         try {
@@ -1681,7 +1845,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                             alert(
-                                `This project has been sent to ${sentCount} reviewer(s). Its status is now "Under Review."`
+                                `The revised project has been sent to ${sentCount} reviewer(s) for review.`
                             );
 
 
@@ -1696,14 +1860,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         } catch (err) {
 
                             console.error(
-                                "ASSIGNMENT ERROR:",
+                                "REVISION RE-ASSIGNMENT ERROR:",
                                 err
                             );
 
 
                             alert(
                                 err.message ||
-                                "Could not send this project for review."
+                                "Could not assign reviewers to the revised project."
                             );
 
 
@@ -1714,77 +1878,104 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
 
 
-                        return;
+                    } else {
+
+                        /*
+                         * No reviewer selected:
+                         *
+                         * Admin chose to make the Final Decision
+                         * directly after seeing the student's revision.
+                         */
+
+                        confirmBtn.disabled =
+                            true;
+
+
+                        try {
+
+                            await sendFinalDecision();
+
+
+                            const decision =
+                                finalDecisionSelect
+                                    ? finalDecisionSelect.value
+                                    : "";
+
+
+                            await loadProject();
+
+
+                            alert(
+                                `The final decision "${formatStatusLabel(
+                                    decision
+                                )}" has been sent to the student.`
+                            );
+
+
+                            if (statusModal) {
+
+                                statusModal.classList.remove(
+                                    "active"
+                                );
+                            }
+
+
+                        } catch (err) {
+
+                            console.error(
+                                "FINAL DECISION ERROR:",
+                                err
+                            );
+
+
+                            alert(
+                                err.message ||
+                                "Could not submit the final decision."
+                            );
+
+
+                        } finally {
+
+                            confirmBtn.disabled =
+                                false;
+                        }
                     }
+
+
+                    return;
                 }
 
 
                 // =================================================
-                // ADMIN FINAL DECISION
+                // UNDER DECISION
                 // =================================================
 
                 if (
-                    phase === "underDecision" ||
-                    phase === "revisionSubmitted"
+                    phase === "underDecision"
                 ) {
 
-                    const decision =
-                        finalDecisionSelect
-                            ? finalDecisionSelect.value
-                            : "";
-
-
-                    if (!decision) {
-
-                        alert(
-                            "Please select a final decision before sending."
-                        );
-
-                        return;
-                    }
-
-
-                    if (
-                        decision !== "Accepted" &&
-                        !commentText
-                    ) {
-
-                        alert(
-                            "Comments are required unless the decision is Accepted."
-                        );
-
-                        return;
-                    }
-
-
-                    confirmBtn.disabled = true;
+                    confirmBtn.disabled =
+                        true;
 
 
                     try {
 
-                        await AdminApi.post(
-                            "/reviews/final",
-                            {
-                                projectId:
-                                    currentProject.id,
+                        await sendFinalDecision();
 
-                                decision:
-                                    decision,
 
-                                comments:
-                                    commentText ||
-                                    undefined
-                            }
-                        );
+                        const decision =
+                            finalDecisionSelect
+                                ? finalDecisionSelect.value
+                                : "";
 
 
                         await loadProject();
 
 
                         alert(
-                            `The final decision ("${formatStatusLabel(
+                            `The final decision "${formatStatusLabel(
                                 decision
-                            )}") has been sent. The student will now see this decision along with the comments.`
+                            )}" has been sent to the student.`
                         );
 
 
@@ -1815,7 +2006,35 @@ document.addEventListener("DOMContentLoaded", function () {
                         confirmBtn.disabled =
                             false;
                     }
+
+
+                    return;
                 }
+
+
+                // =================================================
+                // UNDER REVIEW
+                // =================================================
+
+                if (
+                    phase === "underReview"
+                ) {
+
+                    alert(
+                        "This project is currently under review."
+                    );
+
+                    return;
+                }
+
+
+                // =================================================
+                // DONE
+                // =================================================
+
+                alert(
+                    "This project has already received its final decision."
+                );
             }
         );
     }
