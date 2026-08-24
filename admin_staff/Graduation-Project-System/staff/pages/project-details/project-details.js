@@ -1,594 +1,71 @@
-document.addEventListener("DOMContentLoaded", function () {
-
-    const params = new URLSearchParams(window.location.search);
-    const projectId = params.get("id");
+document.addEventListener("DOMContentLoaded", async function () {
 
     // =========================================================
-    // ELEMENTS
+    // 1. GET PROJECT ID FROM URL
     // =========================================================
 
-    const statusModal = document.getElementById("statusModal");
-    const openModalBtn = document.getElementById("changeStatusBtn");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-
-    const addReviewerBtn = document.getElementById("addReviewerBtn");
-    const reviewersList = document.getElementById("reviewersList");
-
-    const reviewerPickerModal =
-        document.getElementById("reviewerPickerModal");
-
-    const closePickerBtn =
-        document.getElementById("closePickerBtn");
-
-    const doctorsPickerList =
-        document.getElementById("doctorsPickerList");
-
-    const newCommentInput =
-        document.getElementById("newCommentInput");
-
-    const commentsList =
-        document.getElementById("commentsList");
-
-    const commentsCount =
-        document.getElementById("commentsCount");
-
-    const confirmBtn =
-        document.getElementById("confirmBtn");
-
-    const projectStatusBadge =
-        document.getElementById("projectStatusBadge");
-
-    const projectStatusText =
-        document.getElementById("projectStatusText");
-
-    const modalPhaseHint =
-        document.getElementById("modalPhaseHint");
-
-    const finalDecisionRow =
-        document.getElementById("finalDecisionRow");
-
-    const finalDecisionSelect =
-        document.getElementById("finalDecisionSelect");
-
-
-    // =========================================================
-    // STATE
-    // =========================================================
-
-    let currentProject = null;
-
-    let teamMembers = [];
-
-    let pendingReviewerPicks = [];
-
-
-    // =========================================================
-    // PROJECT ID CHECK
-    // =========================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get("id");
 
     if (!projectId) {
-
         alert("No project selected.");
+        window.location.href = "../dashboard/index.html";
+        return;
+    }
 
-        window.location.href = "../projects/index.html";
+
+    // =========================================================
+    // 2. LOAD PROJECT
+    // =========================================================
+
+    let project = null;
+
+    try {
+
+        project = await StaffApi.get(
+            `/assignments/my-projects/${projectId}`
+        );
+
+        console.log(
+            "STAFF PROJECT RESPONSE:",
+            project
+        );
+
+    } catch (err) {
+
+        console.error(
+            "LOAD PROJECT ERROR:",
+            err
+        );
+
+        alert(
+            err.message ||
+            "Project not found!"
+        );
+
+        window.location.href =
+            "../dashboard/index.html";
 
         return;
     }
 
 
     // =========================================================
-    // LOAD PROJECT
+    // 3. PROJECT DATA
     // =========================================================
 
-    async function loadProject() {
+    const projectInfo =
+        project.projectInformation || {};
 
-        try {
-
-            // -------------------------------------------------
-            // 1. GET PROJECT DATA
-            // -------------------------------------------------
-
-            currentProject =
-                await AdminApi.get(
-                    `/projects/${projectId}`
-                );
-
-
-            console.log(
-                "ADMIN PROJECT RESPONSE:",
-                currentProject
-            );
-
-
-            // -------------------------------------------------
-            // 2. GET TEAM MEMBERS SEPARATELY
-            // -------------------------------------------------
-
-            try {
-
-                if (
-                    typeof AdminApi.getMembers === "function"
-                ) {
-
-                    teamMembers =
-                        await AdminApi.getMembers(
-                            currentProject.id
-                        );
-
-                } else {
-
-                    teamMembers =
-                        await AdminApi.get(
-                            `/projects/${currentProject.id}/members`
-                        );
-                }
-
-
-                console.log(
-                    "ADMIN TEAM MEMBERS RESPONSE:",
-                    teamMembers
-                );
-
-
-                if (!Array.isArray(teamMembers)) {
-
-                    teamMembers = [];
-
-                }
-
-            } catch (membersError) {
-
-                console.error(
-                    "LOAD TEAM MEMBERS ERROR:",
-                    membersError
-                );
-
-
-                // -------------------------------------------------
-                // FALLBACK
-                // -------------------------------------------------
-
-                if (
-                    Array.isArray(
-                        currentProject.team_members
-                    )
-                ) {
-
-                    teamMembers =
-                        currentProject.team_members;
-
-                } else if (
-                    Array.isArray(
-                        currentProject.members
-                    )
-                ) {
-
-                    teamMembers =
-                        currentProject.members;
-
-                } else {
-
-                    teamMembers = [];
-
-                }
-            }
-
-
-            pendingReviewerPicks = [];
-
-
-            // -------------------------------------------------
-            // RENDER EVERYTHING
-            // -------------------------------------------------
-
-            renderProjectInfo();
-
-            renderModalState();
-
-
-        } catch (err) {
-
-            console.error(
-                "LOAD PROJECT ERROR:",
-                err
-            );
-
-
-            alert(
-                err.message ||
-                "Could not load this project."
-            );
-        }
-    }
+    const teamInfo =
+        project.teamInformation || {};
 
 
     // =========================================================
-    // RENDER PROJECT INFORMATION
+    // 4. STATUS FUNCTIONS
     // =========================================================
 
-    function renderProjectInfo() {
-
-        // =====================================================
-        // SAFE TEXT FUNCTION
-        // =====================================================
-
-        const setText = (id, value) => {
-
-            const el =
-                document.getElementById(id);
-
-
-            if (!el) {
-                return;
-            }
-
-
-            if (
-                value !== undefined &&
-                value !== null &&
-                String(value).trim() !== ""
-            ) {
-
-                el.textContent = value;
-
-            } else {
-
-                el.textContent = "—";
-            }
-        };
-
-
-        // =====================================================
-        // TEAM INFORMATION
-        // =====================================================
-
-        setText(
-            "teamDepartment",
-            currentProject.department
-        );
-
-        setText(
-            "teamProgram",
-            currentProject.program_name
-        );
-
-        setText(
-            "teamAcademicYear",
-            currentProject.academic_year
-        );
-
-        setText(
-            "teamRegulation",
-            currentProject.regulation
-        );
-
-        setText(
-            "teamSupervisorDoctor",
-            currentProject.supervisor_doctor
-        );
-
-        setText(
-            "teamSupervisorTa",
-            currentProject.supervisor_ta
-        );
-
-
-        // =====================================================
-        // PROJECT INFORMATION
-        // =====================================================
-
-        setText(
-            "projectTitleAr",
-            currentProject.title_ar
-        );
-
-
-        const titleEn =
-            document.getElementById(
-                "projectTitleEn"
-            );
-
-
-        if (titleEn) {
-
-            titleEn.textContent =
-                currentProject.title_en
-                    ? `(${currentProject.title_en})`
-                    : "";
-        }
-
-
-        setText(
-            "projectIdea",
-            currentProject.idea
-        );
-
-        setText(
-            "projectProblem",
-            currentProject.problem_definition
-        );
-
-        setText(
-            "projectObjectives",
-            currentProject.objectives
-        );
-
-        setText(
-            "projectContribution",
-            currentProject.expected_contribution
-        );
-
-
-        // =====================================================
-        // TEAM MEMBERS
-        // =====================================================
-
-        renderTeamMembers();
-    }
-
-
-    // =========================================================
-    // RENDER TEAM MEMBERS
-    // =========================================================
-
-    function renderTeamMembers() {
-
-        console.log(
-            "TEAM MEMBERS BEFORE NORMALIZATION:",
-            teamMembers
-        );
-
-
-        // -----------------------------------------------------
-        // Normalize members
-        // -----------------------------------------------------
-
-        const normalizedMembers =
-            teamMembers.map((member) => {
-
-                return {
-
-                    id:
-                        member.id ??
-                        member.student_id ??
-                        member.studentId ??
-                        null,
-
-
-                    name:
-                        member.member_name ??
-                        member.memberName ??
-                        member.full_name ??
-                        member.fullName ??
-                        member.name ??
-                        "—",
-
-
-                    phone:
-                        member.member_phone ??
-                        member.memberPhone ??
-                        member.phone ??
-                        "—",
-
-
-                    role:
-                        member.track_or_role ??
-                        member.trackOrRole ??
-                        member.role ??
-                        "—",
-
-
-                    studentCode:
-                        member.student_code ??
-                        member.studentCode ??
-                        member.student_id ??
-                        member.studentId ??
-                        "—",
-
-
-                    isLeader:
-                        member.is_leader === true ||
-                        member.is_leader === 1 ||
-                        member.is_leader === "true" ||
-                        member.isLeader === true ||
-                        member.isLeader === 1 ||
-                        member.isLeader === "true"
-                };
-            });
-
-
-        console.log(
-            "NORMALIZED ADMIN MEMBERS:",
-            normalizedMembers
-        );
-
-
-        // =====================================================
-        // BUILD MEMBER CELLS
-        // =====================================================
-
-        const buildMemberCells =
-            (member) => {
-
-                return `
-                    <td class="arabic-name">
-                        ${escapeHtml(member.name)}
-
-                        ${
-                            member.isLeader
-                                ? `<span class="member-leader-tag">
-                                    Leader
-                                   </span>`
-                                : ""
-                        }
-                    </td>
-
-                    <td>
-                        ${escapeHtml(member.phone)}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(member.role)}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(member.studentCode)}
-                    </td>
-                `;
-            };
-
-
-        // =====================================================
-        // FIND LEADER
-        // =====================================================
-
-        const leader =
-            normalizedMembers.find(
-                member =>
-                    member.isLeader === true
-            );
-
-
-        // =====================================================
-        // LEADER TABLE
-        // =====================================================
-
-        const leaderBody =
-            document.getElementById(
-                "leaderTableBody"
-            );
-
-
-        if (leaderBody) {
-
-            if (leader) {
-
-                leaderBody.innerHTML =
-                    `<tr>
-                        ${buildMemberCells(leader)}
-                    </tr>`;
-
-            } else {
-
-                leaderBody.innerHTML = `
-                    <tr>
-                        <td
-                            colspan="4"
-                            style="
-                                text-align:center;
-                                color:#94A3B8;
-                            "
-                        >
-                            No leader recorded.
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-
-        // =====================================================
-        // MEMBERS TABLE
-        // =====================================================
-
-        const membersBody =
-            document.getElementById(
-                "membersTableBody"
-            );
-
-
-        if (membersBody) {
-
-            if (normalizedMembers.length > 0) {
-
-                membersBody.innerHTML =
-                    normalizedMembers
-                        .map(
-                            member =>
-                                `<tr>
-                                    ${buildMemberCells(member)}
-                                </tr>`
-                        )
-                        .join("");
-
-            } else {
-
-                membersBody.innerHTML = `
-                    <tr>
-                        <td
-                            colspan="4"
-                            style="
-                                text-align:center;
-                                color:#94A3B8;
-                            "
-                        >
-                            No members recorded.
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-    }
-
-
-    // =========================================================
-    // ESCAPE HTML
-    // =========================================================
-
-    function escapeHtml(value) {
-
-        if (
-            value === undefined ||
-            value === null
-        ) {
-
-            return "—";
-        }
-
-
-        const div =
-            document.createElement("div");
-
-
-        div.textContent =
-            String(value);
-
-
-        return div.innerHTML;
-    }
-
-
-    // =========================================================
-    // PROJECT WORKFLOW
-    // =========================================================
-
-    function getPhase(status) {
-
-        if (status === "Pending") {
-            return "pending";
-        }
-
-        if (status === "RevisionSubmitted") {
-            return "revisionSubmitted";
-        }
-
-        if (status === "UnderReview") {
-            return "underReview";
-        }
-
-        if (status === "UnderDecision") {
-            return "underDecision";
-        }
-
-        return "done";
-    }
-
-
-    // =========================================================
-    // STATUS LABEL
-    // =========================================================
-
-    function formatStatusLabel(status) {
+    function formatStatus(status) {
 
         const map = {
 
@@ -617,7 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Major Revision"
         };
 
-
         return (
             map[status] ||
             status ||
@@ -626,664 +102,662 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    // =========================================================
-    // STATUS BADGE
-    // =========================================================
+    function getStatusBadgeClass(status) {
 
-    function renderStatusBadge(status) {
+        switch (status) {
 
-        if (
-            !projectStatusText ||
-            !projectStatusBadge
-        ) {
+            case "Accepted":
+                return "status-success";
 
-            return;
-        }
+            case "Rejected":
+                return "status-error";
 
+            case "MinorRevision":
+            case "MajorRevision":
+                return "status-warning";
 
-        projectStatusText.textContent =
-            formatStatusLabel(status);
-
-
-        projectStatusBadge.classList.remove(
-            "status-under-review",
-            "status-under-decision"
-        );
-
-
-        if (
-            status === "UnderReview"
-        ) {
-
-            projectStatusBadge.classList.add(
-                "status-under-review"
-            );
-        }
-
-
-        if (
-            status === "UnderDecision"
-        ) {
-
-            projectStatusBadge.classList.add(
-                "status-under-decision"
-            );
+            default:
+                return "status-warning";
         }
     }
 
 
     // =========================================================
-    // REVIEWERS
+    // 5. ESCAPE HTML
     // =========================================================
 
-    function renderReviewersList() {
+    function escapeHtml(value) {
 
-        if (!reviewersList) {
-            return;
+        if (
+            value === undefined ||
+            value === null
+        ) {
+            return "—";
+        }
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            String(value);
+
+        return div.innerHTML;
+    }
+
+
+    // =========================================================
+    // 6. NORMALIZE MEMBER
+    // =========================================================
+
+    function normalizeMember(member) {
+
+        if (!member) {
+            return null;
+        }
+
+        return {
+
+            id:
+                member.id ??
+                member.student_id ??
+                member.studentId ??
+                null,
+
+
+            name:
+                member.member_name ??
+                member.memberName ??
+                member.full_name ??
+                member.fullName ??
+                member.name ??
+                "—",
+
+
+            // =================================================
+            // PHONE
+            // =================================================
+
+            phone:
+                member.member_phone ??
+                member.memberPhone ??
+                member.phone ??
+                member.phone_number ??
+                member.phoneNumber ??
+                member.mobile ??
+                member.mobile_number ??
+                member.mobileNumber ??
+                "—",
+
+
+            // =================================================
+            // ROLE
+            // =================================================
+
+            role:
+                member.track_or_role ??
+                member.trackOrRole ??
+                member.role ??
+                "—",
+
+
+            // =================================================
+            // STUDENT CODE
+            // =================================================
+
+            studentCode:
+                member.student_code ??
+                member.studentCode ??
+                member.student_id ??
+                member.studentId ??
+                "—",
+
+
+            // =================================================
+            // LEADER
+            // =================================================
+
+            isLeader:
+
+                member.is_leader === true ||
+                member.is_leader === 1 ||
+                member.is_leader === "1" ||
+                member.is_leader === "true" ||
+
+                member.isLeader === true ||
+                member.isLeader === 1 ||
+                member.isLeader === "1" ||
+                member.isLeader === "true"
+        };
+    }
+
+
+    // =========================================================
+    // 7. RENDER PROJECT
+    // =========================================================
+
+    function renderProject() {
+
+
+        // =====================================================
+        // PROJECT TITLE
+        // =====================================================
+
+        const pTitle =
+            document.getElementById(
+                "pTitle"
+            );
+
+        if (pTitle) {
+
+            pTitle.textContent =
+                projectInfo.titleEn ||
+                projectInfo.titleAr ||
+                "—";
         }
 
 
-        reviewersList.innerHTML = "";
+        // =====================================================
+        // DEPARTMENT
+        // =====================================================
+
+        const pDepartment =
+            document.getElementById(
+                "pDepartment"
+            );
+
+        if (pDepartment) {
+
+            pDepartment.textContent =
+                teamInfo.department ||
+                projectInfo.department ||
+                "—";
+        }
 
 
-        const phase =
-            getPhase(
-                currentProject.status
+        // =====================================================
+        // PROGRAM
+        // =====================================================
+
+        const pProgram =
+            document.getElementById(
+                "pProgram"
+            );
+
+        if (pProgram) {
+
+            pProgram.textContent =
+                teamInfo.programName ||
+                projectInfo.programName ||
+                "—";
+        }
+
+
+        // =====================================================
+        // ACADEMIC YEAR
+        // =====================================================
+
+        const pAcademicYear =
+            document.getElementById(
+                "pAcademicYear"
+            );
+
+        if (pAcademicYear) {
+
+            pAcademicYear.textContent =
+                projectInfo.academicYear ||
+                "—";
+        }
+
+
+        // =====================================================
+        // IDEA
+        // =====================================================
+
+        const pIdea =
+            document.getElementById(
+                "pIdea"
+            );
+
+        if (pIdea) {
+
+            pIdea.textContent =
+                projectInfo.idea ||
+                "N/A";
+        }
+
+
+        // =====================================================
+        // PROBLEM
+        // =====================================================
+
+        const pProblem =
+            document.getElementById(
+                "pProblem"
+            );
+
+        if (pProblem) {
+
+            pProblem.textContent =
+                projectInfo.problemDefinition ||
+                "N/A";
+        }
+
+
+        // =====================================================
+        // OBJECTIVES
+        // =====================================================
+
+        const pObjectives =
+            document.getElementById(
+                "pObjectives"
+            );
+
+        if (pObjectives) {
+
+            pObjectives.textContent =
+                projectInfo.objectives ||
+                "N/A";
+        }
+
+
+        // =====================================================
+        // CONTRIBUTION
+        // =====================================================
+
+        const pContribution =
+            document.getElementById(
+                "pContribution"
+            );
+
+        if (pContribution) {
+
+            pContribution.textContent =
+                projectInfo.expectedContribution ||
+                "N/A";
+        }
+
+
+        // =====================================================
+        // SUPERVISOR DOCTOR
+        // =====================================================
+
+        const supervisorDoctorEl =
+            document.getElementById(
+                "pSupervisorDoctor"
+            );
+
+        if (supervisorDoctorEl) {
+
+            supervisorDoctorEl.textContent =
+                teamInfo.supervisorDoctor ||
+                "—";
+        }
+
+
+        // =====================================================
+        // SUPERVISOR TA
+        // =====================================================
+
+        const supervisorTaEl =
+            document.getElementById(
+                "pSupervisorTa"
+            );
+
+        if (supervisorTaEl) {
+
+            supervisorTaEl.textContent =
+                teamInfo.supervisorTa ||
+                "—";
+        }
+
+
+        // =====================================================
+        // STATUS
+        // =====================================================
+
+        const statusEl =
+            document.getElementById(
+                "pStatus"
+            );
+
+        if (statusEl) {
+
+            statusEl.textContent =
+                formatStatus(
+                    projectInfo.status
+                );
+
+            statusEl.className =
+                "status-badge " +
+                getStatusBadgeClass(
+                    projectInfo.status
+                );
+        }
+
+
+        // =====================================================
+        // TEAM MEMBERS
+        // =====================================================
+
+        const rawMembers =
+            Array.isArray(
+                project.teamMembers
+            )
+                ? project.teamMembers
+                : [];
+
+
+        // =====================================================
+        // NORMALIZE ALL MEMBERS
+        // =====================================================
+
+        const members =
+            rawMembers
+                .map(normalizeMember)
+                .filter(Boolean);
+
+
+        // =====================================================
+        // FIND LEADER FROM TEAM MEMBERS
+        // =====================================================
+
+        let leader =
+            members.find(
+                member =>
+                    member.isLeader === true
             );
 
 
         // =====================================================
-        // PENDING / REVISION SUBMITTED
+        // FALLBACK TO teamLeader
         // =====================================================
 
         if (
-            phase === "pending" ||
-            phase === "revisionSubmitted"
+            !leader &&
+            project.teamLeader
         ) {
 
-            pendingReviewerPicks.forEach(
-                (reviewer) => {
-
-                    const row =
-                        document.createElement(
-                            "div"
-                        );
-
-
-                    row.className =
-                        "reviewer-item";
-
-
-                    row.innerHTML = `
-                        <button
-                            type="button"
-                            class="btn-delete-reviewer"
-                            title="Remove reviewer"
-                        >
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-
-                        <span>
-                            ${escapeHtml(
-                                reviewer.full_name
-                            )}
-                        </span>
-                    `;
-
-
-                    const deleteBtn =
-                        row.querySelector(
-                            ".btn-delete-reviewer"
-                        );
-
-
-                    if (deleteBtn) {
-
-                        deleteBtn.addEventListener(
-                            "click",
-                            () => {
-
-                                pendingReviewerPicks =
-                                    pendingReviewerPicks.filter(
-                                        p =>
-                                            p.id !==
-                                            reviewer.id
-                                    );
-
-
-                                renderReviewersList();
-
-
-                                if (
-                                    currentProject &&
-                                    currentProject.status ===
-                                    "RevisionSubmitted" &&
-                                    confirmBtn
-                                ) {
-
-                                    confirmBtn.textContent =
-                                        pendingReviewerPicks.length > 0
-                                            ? "Send for Review"
-                                            : "Send Final Decision";
-                                }
-                            }
-                        );
-                    }
-
-
-                    reviewersList.appendChild(
-                        row
-                    );
-                }
-            );
-
-
-            return;
+            leader =
+                normalizeMember(
+                    project.teamLeader
+                );
         }
 
 
         // =====================================================
-        // AFTER PROJECT WAS SENT
+        // DEBUG
         // =====================================================
 
-        const reviews =
-            currentProject.reviews || [];
+        console.log(
+            "RAW TEAM MEMBERS:",
+            rawMembers
+        );
+
+        console.log(
+            "NORMALIZED MEMBERS:",
+            members
+        );
+
+        console.log(
+            "FINAL LEADER:",
+            leader
+        );
 
 
-        const reviewers =
-            currentProject.reviewers || [];
+        // =====================================================
+        // LEADER TABLE
+        // =====================================================
+
+        const leaderTableBody =
+            document.getElementById(
+                "pLeaderTableBody"
+            );
 
 
-        const decisionLabels = {
+        if (leaderTableBody) {
 
-            Accepted:
-                "Accepted",
+            if (leader) {
 
-            Rejected:
-                "Rejected",
+                leaderTableBody.innerHTML = `
 
-            MinorRevision:
-                "Minor Revision",
+                    <tr>
 
-            MajorRevision:
-                "Major Revision"
-        };
-
-
-        reviewers.forEach(
-            (reviewer) => {
-
-                const row =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                row.className =
-                    "reviewer-item";
-
-
-                const review =
-                    reviews.find(
-                        r =>
-                            String(
-                                r.staff_id
-                            ) ===
-                            String(
-                                reviewer.id
-                            )
-                    );
-
-
-                const decision =
-                    review &&
-                    review.decision
-                        ? (
-                            decisionLabels[
-                                review.decision
-                            ] ||
-                            review.decision
-                        )
-                        : "Pending Review";
-
-
-                row.innerHTML = `
-                    <i
-                        class="fa-solid fa-user-check"
-                        style="color:#16A34A;"
-                    ></i>
-
-                    <span style="flex:1;">
-                        <strong>
+                        <td>
                             ${escapeHtml(
-                                reviewer.full_name
+                                leader.name
                             )}
-                        </strong>
-                    </span>
+                        </td>
 
-                    <span class="reviewer-decision">
-                        ${escapeHtml(
-                            decision
-                        )}
-                    </span>
+
+                        <td>
+                            ${escapeHtml(
+                                leader.phone
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                leader.role
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                leader.studentCode
+                            )}
+                        </td>
+
+                    </tr>
+
                 `;
 
+            } else {
 
-                reviewersList.appendChild(
-                    row
-                );
+                leaderTableBody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            style="
+                                text-align:center;
+                            "
+                        >
+                            No leader recorded.
+                        </td>
+
+                    </tr>
+
+                `;
             }
-        );
+        }
 
 
         // =====================================================
-        // FALLBACK
+        // MEMBERS TABLE
         // =====================================================
 
-        if (
-            reviewers.length === 0 &&
-            reviews.length > 0
-        ) {
-
-            reviews.forEach(
-                (review) => {
-
-                    const row =
-                        document.createElement(
-                            "div"
-                        );
-
-
-                    row.className =
-                        "reviewer-item";
-
-
-                    const decision =
-                        review.decision
-                            ? (
-                                decisionLabels[
-                                    review.decision
-                                ] ||
-                                review.decision
-                            )
-                            : "Pending Review";
-
-
-                    row.innerHTML = `
-                        <i
-                            class="fa-solid fa-user-check"
-                            style="color:#16A34A;"
-                        ></i>
-
-                        <span style="flex:1;">
-                            <strong>
-                                ${escapeHtml(
-                                    review.staff_name
-                                )}
-                            </strong>
-                        </span>
-
-                        <span class="reviewer-decision">
-                            ${escapeHtml(
-                                decision
-                            )}
-                        </span>
-                    `;
-
-
-                    reviewersList.appendChild(
-                        row
-                    );
-                }
+        const membersTableBody =
+            document.getElementById(
+                "pMembersTableBody"
             );
+
+
+        if (membersTableBody) {
+
+            membersTableBody.innerHTML = "";
+
+
+            if (
+                members.length > 0
+            ) {
+
+                members.forEach(
+                    member => {
+
+                        const row =
+                            document.createElement(
+                                "tr"
+                            );
+
+
+                        row.innerHTML = `
+
+                            <td>
+                                ${escapeHtml(
+                                    member.name
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHtml(
+                                    member.phone
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHtml(
+                                    member.role
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHtml(
+                                    member.studentCode
+                                )}
+                            </td>
+
+                        `;
+
+
+                        membersTableBody.appendChild(
+                            row
+                        );
+                    }
+                );
+
+            } else {
+
+                membersTableBody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            style="
+                                text-align:center;
+                            "
+                        >
+                            No members recorded.
+                        </td>
+
+                    </tr>
+
+                `;
+            }
         }
     }
 
 
     // =========================================================
-    // COMMENTS
+    // 8. RENDER PROJECT
     // =========================================================
 
-    function addCommentCardDOM(
-        author,
-        text
+    renderProject();
+
+
+    // =========================================================
+    // 9. REVIEW MODAL ELEMENTS
+    // =========================================================
+
+    const modal =
+        document.getElementById(
+            "reviewModal"
+        );
+
+
+    const openBtn =
+        document.getElementById(
+            "openReviewModalBtn"
+        );
+
+
+    const closeBtn =
+        document.getElementById(
+            "closeModalBtn"
+        );
+
+
+    const cancelBtn =
+        document.getElementById(
+            "cancelModalBtn"
+        );
+
+
+    const reviewForm =
+        document.getElementById(
+            "reviewForm"
+        );
+
+
+    const submitBtn =
+        reviewForm
+            ? reviewForm.querySelector(
+                'button[type="submit"]'
+            )
+            : null;
+
+
+    // =========================================================
+    // 10. REVIEW BUTTON STATUS
+    // =========================================================
+
+    /*
+     * IMPORTANT:
+     *
+     * A Staff member can review only when the project
+     * has been assigned to him/her and the current project
+     * status is UnderReview.
+     *
+     * If Admin assigns the revised project to this Staff
+     * member again, the backend should set the project to
+     * UnderReview and this button becomes enabled automatically.
+     */
+
+    if (
+        projectInfo.status !==
+        "UnderReview"
     ) {
 
-        const card =
-            document.createElement(
-                "div"
-            );
+        if (openBtn) {
 
+            openBtn.disabled =
+                true;
 
-        card.className =
-            "comment-card";
-
-
-        card.innerHTML = `
-            <div class="comment-header">
-                <span class="comment-author">
-                    ${escapeHtml(author)}
-                </span>
-            </div>
-
-            <div class="comment-text">
-                ${escapeHtml(text)}
-            </div>
-        `;
-
-
-        if (commentsList) {
-
-            commentsList.appendChild(
-                card
-            );
-        }
-    }
-
-
-    function renderCommentsList() {
-
-        if (!commentsList) {
-            return;
-        }
-
-
-        commentsList.innerHTML = "";
-
-
-        let count = 0;
-
-
-        (
-            currentProject.reviews || []
-        ).forEach(
-            (review) => {
-
-                if (!review.comments) {
-                    return;
-                }
-
-
-                addCommentCardDOM(
-                    review.staff_name,
-                    review.comments
-                );
-
-
-                count++;
-            }
-        );
-
-
-        if (
-            currentProject.finalDecision &&
-            currentProject.finalDecision.admin_comments
-        ) {
-
-            addCommentCardDOM(
-                "Admin (Final Decision)",
-                currentProject
-                    .finalDecision
-                    .admin_comments
-            );
-
-
-            count++;
-        }
-
-
-        if (commentsCount) {
-
-            commentsCount.textContent =
-                `(${count})`;
-        }
-    }
-        // =========================================================
-    // MODAL STATE
-    // =========================================================
-
-    function renderModalState() {
-
-        const status =
-            currentProject.status;
-
-
-        const phase =
-            getPhase(status);
-
-
-        renderStatusBadge(status);
-
-        renderReviewersList();
-
-        renderCommentsList();
-
-
-        // =====================================================
-        // FINAL DECISION VISIBILITY
-        // =====================================================
-
-        if (finalDecisionRow) {
-
-            /*
-             * Final Decision:
-             *
-             * Pending       -> hidden
-             * UnderReview   -> hidden
-             * UnderDecision -> visible
-             * RevisionSubmitted -> visible
-             */
-
-            finalDecisionRow.classList.toggle(
-                "hidden",
-                phase === "pending" ||
-                phase === "underReview"
-            );
-        }
-
-
-        // =====================================================
-        // ADD REVIEWER VISIBILITY
-        // =====================================================
-
-        if (addReviewerBtn) {
-
-            /*
-             * Admin can add reviewer:
-             *
-             * 1. First submission
-             * 2. After student revision
-             */
-
-            addReviewerBtn.style.display =
-                (
-                    phase === "pending" ||
-                    phase === "revisionSubmitted"
-                )
-                    ? ""
-                    : "none";
-        }
-
-
-        // =====================================================
-        // CLEAR COMMENT
-        // =====================================================
-
-        if (newCommentInput) {
-
-            newCommentInput.value = "";
-        }
-
-
-        // =====================================================
-        // PENDING
-        // =====================================================
-
-        if (phase === "pending") {
-
-            if (modalPhaseHint) {
-
-                modalPhaseHint.textContent =
-                    'Add reviewers below, then click "Send for Review" to send this project to staff.';
-            }
-
-
-            if (confirmBtn) {
-
-                confirmBtn.textContent =
-                    "Send for Review";
-
-                confirmBtn.style.display =
-                    "";
-            }
-        }
-
-
-        // =====================================================
-        // REVISION SUBMITTED
-        // =====================================================
-
-        else if (
-            phase === "revisionSubmitted"
-        ) {
-
-            if (modalPhaseHint) {
-
-                modalPhaseHint.textContent =
-                    "The student has submitted a revised project. You can either make a final decision directly or add a reviewer to review the new version.";
-            }
-
-
-            if (confirmBtn) {
-
-                /*
-                 * UI LOGIC:
-                 *
-                 * No reviewer selected:
-                 *      Send Final Decision
-                 *
-                 * Reviewer selected:
-                 *      Send for Review
-                 */
-
-                confirmBtn.textContent =
-                    pendingReviewerPicks.length > 0
-                        ? "Send for Review"
-                        : "Send Final Decision";
-
-                confirmBtn.style.display =
-                    "";
-            }
-        }
-
-
-        // =====================================================
-        // UNDER REVIEW
-        // =====================================================
-
-        else if (
-            phase === "underReview"
-        ) {
-
-            if (modalPhaseHint) {
-
-                modalPhaseHint.textContent =
-                    "This project is currently under review by staff. Reviewers can't be changed once sent.";
-            }
-
-
-            if (confirmBtn) {
-
-                confirmBtn.style.display =
-                    "none";
-            }
-        }
-
-
-        // =====================================================
-        // UNDER DECISION
-        // =====================================================
-
-        else if (
-            phase === "underDecision"
-        ) {
-
-            if (modalPhaseHint) {
-
-                modalPhaseHint.textContent =
-                    'Staff have finished reviewing this project. Select a final decision below, then click "Send Final Decision".';
-            }
-
-
-            if (confirmBtn) {
-
-                confirmBtn.textContent =
-                    "Send Final Decision";
-
-                confirmBtn.style.display =
-                    "";
-            }
-
-
-            if (finalDecisionSelect) {
-
-                finalDecisionSelect.value =
-                    (
-                        currentProject.finalDecision &&
-                        currentProject.finalDecision.admin_decision
-                    ) || "";
-            }
-        }
-
-
-        // =====================================================
-        // DONE
-        // =====================================================
-
-        else {
-
-            if (modalPhaseHint) {
-
-                modalPhaseHint.textContent =
-                    `This project's final decision ("${formatStatusLabel(
-                        status
-                    )}") has already been sent to the student.`;
-            }
-
-
-            if (confirmBtn) {
-
-                confirmBtn.style.display =
-                    "none";
-            }
-
-
-            if (finalDecisionSelect) {
-
-                finalDecisionSelect.value =
-                    (
-                        currentProject.finalDecision &&
-                        currentProject.finalDecision.admin_decision
-                    ) ||
-                    status;
-            }
+            openBtn.title =
+                "This project isn't open for review right now.";
         }
     }
 
 
     // =========================================================
-    // OPEN STATUS MODAL
+    // 11. OPEN MODAL
     // =========================================================
 
-    if (openModalBtn) {
+    if (openBtn) {
 
-        openModalBtn.addEventListener(
+        openBtn.addEventListener(
             "click",
             () => {
 
-                if (statusModal) {
+                if (modal) {
 
-                    statusModal.classList.add(
+                    modal.classList.add(
                         "active"
                     );
                 }
@@ -1293,18 +767,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // CLOSE STATUS MODAL
+    // 12. CLOSE MODAL
     // =========================================================
 
-    if (closeModalBtn) {
+    if (closeBtn) {
 
-        closeModalBtn.addEventListener(
+        closeBtn.addEventListener(
             "click",
             () => {
 
-                if (statusModal) {
+                if (modal) {
 
-                    statusModal.classList.remove(
+                    modal.classList.remove(
                         "active"
                     );
                 }
@@ -1314,42 +788,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // ADD REVIEWER
+    // 13. CANCEL MODAL
     // =========================================================
 
-    if (addReviewerBtn) {
+    if (cancelBtn) {
 
-        addReviewerBtn.addEventListener(
-            "click",
-            function () {
-
-                renderDoctorsPicker();
-
-
-                if (reviewerPickerModal) {
-
-                    reviewerPickerModal.classList.add(
-                        "active"
-                    );
-                }
-            }
-        );
-    }
-
-
-    // =========================================================
-    // CLOSE REVIEWER PICKER
-    // =========================================================
-
-    if (closePickerBtn) {
-
-        closePickerBtn.addEventListener(
+        cancelBtn.addEventListener(
             "click",
             () => {
 
-                if (reviewerPickerModal) {
+                if (modal) {
 
-                    reviewerPickerModal.classList.remove(
+                    modal.classList.remove(
                         "active"
                     );
                 }
@@ -1359,31 +809,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // CLICK OUTSIDE MODALS
+    // 14. CLICK OUTSIDE MODAL
     // =========================================================
 
     window.addEventListener(
         "click",
-        function (event) {
+        function (e) {
 
             if (
-                statusModal &&
-                event.target === statusModal
+                modal &&
+                e.target === modal
             ) {
 
-                statusModal.classList.remove(
-                    "active"
-                );
-            }
-
-
-            if (
-                reviewerPickerModal &&
-                event.target ===
-                reviewerPickerModal
-            ) {
-
-                reviewerPickerModal.classList.remove(
+                modal.classList.remove(
                     "active"
                 );
             }
@@ -1392,583 +830,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // LOAD STAFF MEMBERS
+    // 15. SUBMIT REVIEW
     // =========================================================
 
-    async function renderDoctorsPicker() {
+    if (reviewForm) {
 
-        if (!doctorsPickerList) {
-            return;
-        }
+        reviewForm.addEventListener(
+            "submit",
+            async function (e) {
 
-
-        doctorsPickerList.innerHTML = `
-            <p class="doctors-picker-empty">
-                Loading staff members...
-            </p>
-        `;
+                e.preventDefault();
 
 
-        let doctors = [];
+                // =================================================
+                // SELECTED STATUS
+                // =================================================
+
+                const selectedStatus =
+                    document.querySelector(
+                        'input[name="reviewStatus"]:checked'
+                    )?.value;
 
 
-        try {
+                // =================================================
+                // COMMENT
+                // =================================================
 
-            doctors =
-                typeof StaffStorage !== "undefined"
-                    ? await StaffStorage.getAll()
-                    : [];
-
-        } catch (err) {
-
-            doctorsPickerList.innerHTML = `
-                <p class="doctors-picker-empty">
-                    Could not load staff members:
-                    ${escapeHtml(err.message)}
-                </p>
-            `;
-
-            return;
-        }
-
-
-        doctorsPickerList.innerHTML = "";
-
-
-        const availableDoctors =
-            doctors.filter(
-                doctor =>
-                    !pendingReviewerPicks.some(
-                        picked =>
-                            String(picked.id) ===
-                            String(doctor.id)
-                    )
-            );
-
-
-        if (
-            availableDoctors.length === 0
-        ) {
-
-            doctorsPickerList.innerHTML = `
-                <p class="doctors-picker-empty">
-                    No more registered staff members to add.
-                    Add one from the Staff and Programs page.
-                </p>
-            `;
-
-            return;
-        }
-
-
-        availableDoctors.forEach(
-            doctor => {
-
-                const item =
-                    document.createElement(
-                        "div"
+                const doctorCommentInput =
+                    document.getElementById(
+                        "doctorComment"
                     );
 
 
-                item.className =
-                    "doctor-pick-item";
-
-
-                item.innerHTML = `
-                    <span>
-                        <i class="fa-solid fa-user-doctor"></i>
-                        ${escapeHtml(
-                            doctor.full_name
-                        )}
-                    </span>
-
-                    <i class="fa-solid fa-plus-circle"></i>
-                `;
-
-
-                item.addEventListener(
-                    "click",
-                    function () {
-
-                        const alreadySelected =
-                            pendingReviewerPicks.some(
-                                picked =>
-                                    String(picked.id) ===
-                                    String(doctor.id)
-                            );
-
-
-                        if (alreadySelected) {
-
-                            return;
-                        }
-
-
-                        pendingReviewerPicks.push({
-                            id: doctor.id,
-                            full_name:
-                                doctor.full_name
-                        });
-
-
-                        renderReviewersList();
-
-
-                        // =============================================
-                        // REVISION SUBMITTED UI LOGIC
-                        // =============================================
-
-                        if (
-                            currentProject &&
-                            currentProject.status ===
-                            "RevisionSubmitted" &&
-                            confirmBtn
-                        ) {
-
-                            confirmBtn.textContent =
-                                "Send for Review";
-                        }
-
-
-                        if (
-                            reviewerPickerModal
-                        ) {
-
-                            reviewerPickerModal.classList.remove(
-                                "active"
-                            );
-                        }
-                    }
-                );
-
-
-                doctorsPickerList.appendChild(
-                    item
-                );
-            }
-        );
-    }
-
-
-    // =========================================================
-    // SEND PROJECT FOR REVIEW
-    // =========================================================
-
-    async function sendProjectForReview() {
-
-        if (
-            !currentProject ||
-            pendingReviewerPicks.length === 0
-        ) {
-
-            throw new Error(
-                "Please add at least one reviewer."
-            );
-        }
-
-
-        const staffIds =
-            pendingReviewerPicks.map(
-                reviewer =>
-                    reviewer.id
-            );
-
-
-        const phase =
-            getPhase(
-                currentProject.status
-            );
-
-
-        // =====================================================
-        // FIRST ASSIGNMENT
-        // Pending -> UnderReview
-        // =====================================================
-
-        if (
-            phase === "pending"
-        ) {
-
-            await AdminApi.post(
-                "/assignments",
-                {
-                    projectId:
-                        currentProject.id,
-
-                    staffIds:
-                        staffIds
-                }
-            );
-
-            return;
-        }
-
-
-        // =====================================================
-        // RE-ASSIGNMENT AFTER REVISION
-        // RevisionSubmitted -> UnderReview
-        // =====================================================
-
-        if (
-            phase === "revisionSubmitted"
-        ) {
-
-            if (
-                typeof AdminApi.put !== "function"
-            ) {
-
-                throw new Error(
-                    "AdminApi.put is not available. The reassignment endpoint must support PUT /assignments/:projectId."
-                );
-            }
-
-
-            await AdminApi.put(
-                `/assignments/${currentProject.id}`,
-                {
-                    staffIds:
-                        staffIds
-                }
-            );
-
-            return;
-        }
-
-
-        throw new Error(
-            "Project cannot be sent for review in its current status."
-        );
-    }
-
-
-    // =========================================================
-    // SEND FINAL DECISION
-    // =========================================================
-
-    async function sendFinalDecision() {
-
-        const decision =
-            finalDecisionSelect
-                ? finalDecisionSelect.value
-                : "";
-
-
-        const commentText =
-            newCommentInput
-                ? newCommentInput.value.trim()
-                : "";
-
-
-        if (!decision) {
-
-            throw new Error(
-                "Please select a final decision before sending."
-            );
-        }
-
-
-        if (
-            decision !== "Accepted" &&
-            !commentText
-        ) {
-
-            throw new Error(
-                "Comments are required unless the decision is Accepted."
-            );
-        }
-
-
-        await AdminApi.post(
-            "/reviews/final",
-            {
-                projectId:
-                    currentProject.id,
-
-                decision:
-                    decision,
-
-                comments:
-                    commentText ||
-                    undefined
-            }
-        );
-    }
-
-
-    // =========================================================
-    // CONFIRM BUTTON
-    // =========================================================
-
-    if (confirmBtn) {
-
-        confirmBtn.addEventListener(
-            "click",
-            async function () {
-
-                const phase =
-                    getPhase(
-                        currentProject.status
-                    );
+                const doctorComment =
+                    doctorCommentInput
+                        ? doctorCommentInput.value.trim()
+                        : "";
 
 
                 // =================================================
-                // FIRST SUBMISSION
-                // Pending -> Reviewer
+                // VALIDATE STATUS
                 // =================================================
 
-                if (
-                    phase === "pending"
-                ) {
-
-                    if (
-                        pendingReviewerPicks.length === 0
-                    ) {
-
-                        alert(
-                            "Please add at least one reviewer before sending this project for review."
-                        );
-
-                        return;
-                    }
-
-
-                    confirmBtn.disabled =
-                        true;
-
-
-                    try {
-
-                        await sendProjectForReview();
-
-
-                        const sentCount =
-                            pendingReviewerPicks.length;
-
-
-                        await loadProject();
-
-
-                        alert(
-                            `This project has been sent to ${sentCount} reviewer(s). Its status is now "Under Review."`
-                        );
-
-
-                        if (statusModal) {
-
-                            statusModal.classList.remove(
-                                "active"
-                            );
-                        }
-
-
-                    } catch (err) {
-
-                        console.error(
-                            "ASSIGNMENT ERROR:",
-                            err
-                        );
-
-
-                        alert(
-                            err.message ||
-                            "Could not send this project for review."
-                        );
-
-
-                    } finally {
-
-                        confirmBtn.disabled =
-                            false;
-                    }
-
-
-                    return;
-                }
-
-
-                // =================================================
-                // REVISION SUBMITTED
-                //
-                // Admin has two choices:
-                //
-                // 1. Reviewer selected
-                //    -> Assign Reviewer
-                //
-                // 2. No Reviewer selected
-                //    -> Final Decision
-                // =================================================
-
-                if (
-                    phase === "revisionSubmitted"
-                ) {
-
-                    confirmBtn.disabled =
-                        true;
-
-
-                    try {
-
-                        // =============================================
-                        // OPTION 1: ASSIGN REVIEWER
-                        // =============================================
-
-                        if (
-                            pendingReviewerPicks.length > 0
-                        ) {
-
-                            await sendProjectForReview();
-
-
-                            const sentCount =
-                                pendingReviewerPicks.length;
-
-
-                            await loadProject();
-
-
-                            alert(
-                                `The revised project has been sent to ${sentCount} reviewer(s) for review.`
-                            );
-
-
-                        }
-
-                        // =============================================
-                        // OPTION 2: FINAL DECISION DIRECTLY
-                        // =============================================
-
-                        else {
-
-                            await sendFinalDecision();
-
-
-                            const decision =
-                                finalDecisionSelect
-                                    ? finalDecisionSelect.value
-                                    : "";
-
-
-                            await loadProject();
-
-
-                            alert(
-                                `The final decision "${formatStatusLabel(
-                                    decision
-                                )}" has been sent to the student.`
-                            );
-                        }
-
-
-                        if (statusModal) {
-
-                            statusModal.classList.remove(
-                                "active"
-                            );
-                        }
-
-
-                    } catch (err) {
-
-                        console.error(
-                            "REVISION ACTION ERROR:",
-                            err
-                        );
-
-
-                        alert(
-                            err.message ||
-                            "Could not complete the selected action."
-                        );
-
-
-                    } finally {
-
-                        confirmBtn.disabled =
-                            false;
-                    }
-
-
-                    return;
-                }
-
-
-                // =================================================
-                // UNDER DECISION
-                // Reviewer finished -> Final Decision
-                // =================================================
-
-                if (
-                    phase === "underDecision"
-                ) {
-
-                    confirmBtn.disabled =
-                        true;
-
-
-                    try {
-
-                        await sendFinalDecision();
-
-
-                        const decision =
-                            finalDecisionSelect
-                                ? finalDecisionSelect.value
-                                : "";
-
-
-                        await loadProject();
-
-
-                        alert(
-                            `The final decision "${formatStatusLabel(
-                                decision
-                            )}" has been sent to the student.`
-                        );
-
-
-                        if (statusModal) {
-
-                            statusModal.classList.remove(
-                                "active"
-                            );
-                        }
-
-
-                    } catch (err) {
-
-                        console.error(
-                            "FINAL DECISION ERROR:",
-                            err
-                        );
-
-
-                        alert(
-                            err.message ||
-                            "Could not submit the final decision."
-                        );
-
-
-                    } finally {
-
-                        confirmBtn.disabled =
-                            false;
-                    }
-
-
-                    return;
-                }
-
-
-                // =================================================
-                // UNDER REVIEW
-                // =================================================
-
-                if (
-                    phase === "underReview"
-                ) {
+                if (!selectedStatus) {
 
                     alert(
-                        "This project is currently under review."
+                        "Please select a status decision."
                     );
 
                     return;
@@ -1976,21 +883,106 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 // =================================================
-                // DONE
+                // VALIDATE COMMENT
                 // =================================================
 
-                alert(
-                    "This project has already received its final decision."
-                );
+                if (!doctorComment) {
+
+                    alert(
+                        "Please enter a comment before submitting the report."
+                    );
+
+
+                    if (
+                        doctorCommentInput
+                    ) {
+
+                        doctorCommentInput.focus();
+                    }
+
+
+                    return;
+                }
+
+
+                // =================================================
+                // DISABLE SUBMIT
+                // =================================================
+
+                if (submitBtn) {
+
+                    submitBtn.disabled =
+                        true;
+                }
+
+
+                // =================================================
+                // SUBMIT REVIEW
+                // =================================================
+
+                try {
+
+                    /*
+                     * STAFF ONLY
+                     *
+                     * Never use AdminApi here.
+                     */
+
+                    await StaffApi.post(
+                        "/reviews",
+                        {
+                            projectId:
+                                projectInfo.id,
+
+                            decision:
+                                selectedStatus,
+
+                            comments:
+                                doctorComment
+                        }
+                    );
+
+
+                    alert(
+                        "Review submitted successfully!"
+                    );
+
+
+                    if (modal) {
+
+                        modal.classList.remove(
+                            "active"
+                        );
+                    }
+
+
+                    window.location.reload();
+
+
+                } catch (err) {
+
+                    console.error(
+                        "SUBMIT REVIEW ERROR:",
+                        err
+                    );
+
+
+                    alert(
+                        err.message ||
+                        "Failed to submit review."
+                    );
+
+
+                } finally {
+
+                    if (submitBtn) {
+
+                        submitBtn.disabled =
+                            false;
+                    }
+                }
             }
         );
     }
-
-
-    // =========================================================
-    // INITIAL LOAD
-    // =========================================================
-
-    loadProject();
 
 });
